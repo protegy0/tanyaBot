@@ -1,9 +1,18 @@
 const fs = require('node:fs');
+const https = require('https');
 const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
-const { token } = require('./config.json');
+const { token, apiKey, login } = require('./config.json');
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const Booru = require('booru');
+
+
+const client = new Client({ intents: [
+                                                            GatewayIntentBits.Guilds,
+                                                            GatewayIntentBits.GuildMessages,
+                                                            GatewayIntentBits.MessageContent,
+                                                            GatewayIntentBits.GuildMembers
+                                                            ] });
 
 client.commands = new Collection();
 
@@ -25,6 +34,9 @@ for (const folder of commandFolders) {
 }
 
 
+
+
+
 client.once(Events.ClientReady, readyClient => {
     console.log(`Ready! Logged in as ${readyClient.user.tag}`);
 });
@@ -44,10 +56,46 @@ client.on(Events.InteractionCreate, async interaction => {
         await command.execute(interaction);
     } catch (error) {
         console.error(error);
-        if (interaction.replied || inteaction.deferred) {
+        if (interaction.replied || interaction.deferred) {
             await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
         } else {
             await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+        }
+    }
+
+});
+
+client.on("messageCreate", async msg => {
+    if (msg.content[0] === '-') {
+        const messageArray = msg.content.split(" ");
+        const command = messageArray[0].substring(1);
+        switch (command) {
+            case "help":
+                msg.reply(`Help given:`);
+                break;
+            case "hello":
+                msg.reply(`Hello ${msg.author.username}`);
+                break;
+            case "math":
+                msg.reply(`I love math!`);
+                break;
+            case "add":
+                const numbers = messageArray[1].split(",");
+                const sum = parseInt(numbers[0]) + parseInt(numbers[1]);
+                if (isNaN(sum)) {
+                    msg.reply("Something other than a number was provided.");
+                } else {
+                    msg.reply(`Sum of numbers is ${sum}`);
+                }
+                break;
+            case "tanya":
+                Booru.search('safebooru', ['tanya_degurechaff', 'solo'], {limit : 1, random: true}).then(
+                    posts => {
+                        for (let post of posts) msg.reply(post.fileUrl)
+
+                    },
+                )
+                break;
         }
     }
 });
