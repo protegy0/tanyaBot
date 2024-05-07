@@ -1,8 +1,7 @@
 const fs = require('node:fs');
-const https = require('https');
 const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
-const { token, apiKey, login } = require('./config.json');
+const { token } = require('./config.json');
 
 const Booru = require('booru');
 
@@ -67,19 +66,23 @@ client.on(Events.InteractionCreate, async interaction => {
 
 client.on("messageCreate", async msg => {
     if (msg.content[0] === '-') {
-        const messageArray = msg.content.split(" ");
+        let messageArray = msg.content.split(" ");
         const command = messageArray[0].substring(1);
         switch (command) {
             case "help":
-                msg.reply(`Help given:`);
+                console.log(`${msg.author.username} sent command ${command}`);
+                msg.reply(`yes\nhelp\nha!`);
                 break;
             case "hello":
+                console.log(`${msg.author.username} sent command ${command}`);
                 msg.reply(`Hello ${msg.author.username}`);
                 break;
             case "math":
+                console.log(`${msg.author.username} sent command ${command}`);
                 msg.reply(`I love math!`);
                 break;
             case "add":
+                console.log(`${msg.author.username} sent command ${command}`);
                 const numbers = messageArray[1].split(",");
                 const sum = parseInt(numbers[0]) + parseInt(numbers[1]);
                 if (isNaN(sum)) {
@@ -89,6 +92,7 @@ client.on("messageCreate", async msg => {
                 }
                 break;
             case "tanya":
+                console.log(`${msg.author.username} sent command ${command}`);
                 Booru.search('safebooru', ['tanya_degurechaff', 'solo'], {limit : 1, random: true}).then(
                     posts => {
                         for (let post of posts) msg.reply(post.fileUrl)
@@ -96,7 +100,72 @@ client.on("messageCreate", async msg => {
                     },
                 )
                 break;
+            case "makima":
+                console.log(`${msg.author.username} sent command ${command}`);
+                Booru.search('safebooru', ['makima_(chainsaw_man)', 'solo'], {limit : 1, random: true}).then(
+                    posts => {
+                        for (let post of posts) msg.reply(post.fileUrl)
+
+                    },
+                )
+                break;
+            case "frieren":
+                console.log(`${msg.author.username} sent command ${command}`);
+                Booru.search('safebooru', ['frieren', 'solo'], {limit : 1, random: true}).then(
+                    posts => {
+                        for (let post of posts) msg.reply(post.fileUrl)
+
+                    },
+                )
+                break;
+            case "picture":
+                messageArray = messageArray.slice(1)
+                let newQuery = ""
+                for (let string of messageArray) {
+                    newQuery = newQuery + string + "_"
+                }
+                newQuery = newQuery.slice(0, -1);
+                console.log(`${msg.author.username} sent command ${command} and queried ${newQuery}`);
+                Booru.search('safebooru', [newQuery, 'solo'], {limit : 1, random: true}).then(
+                    posts => {
+                        if (posts.length === 0) {
+                            newQuery = ""
+                            const temp = messageArray[0]
+                            messageArray[0] = messageArray[1]
+                            messageArray[1] = temp
+                            for (let string of messageArray) {
+                                newQuery = newQuery + string + "_"
+                            }
+                            newQuery = newQuery.slice(0, -1);
+                            Booru.search('safebooru', [newQuery, 'solo'], {limit: 1, random: true}).then(
+                                posts => {
+                                        if (posts.length === 0) {
+                                            msg.reply('Query either does not exist or is formatted incorrectly')
+                                        } else {
+                                            for (let post of posts) msg.reply(post.fileUrl)
+                                        }
+
+                                }
+                            );
+
+                        } else {
+                            for (let post of posts) msg.reply(post.fileUrl)
+                        }
+                    }
+                )
+                break;
+            case "coinflip":
+                const flip = Math.random();
+                if (flip > 0.5) {
+                    msg.reply("Heads!")
+                } else {
+                    msg.reply("Tails!")
+                }
+                break;
+
         }
+
+
     }
 });
 
