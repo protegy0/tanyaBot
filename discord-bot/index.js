@@ -1,9 +1,20 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
+const { Client, Collection, Events, GatewayIntentBits, ButtonBuilder, ButtonStyle, ActionRowBuilder, codeBlock } = require('discord.js');
+const { Users, CurrencyShop } = require('./dbObjects.js');
 const { token } = require('./config.json');
-
+const Op = require('sequelize');
 const Booru = require('booru');
+const malScraper = require('mal-scraper');
+const search = malScraper.search
+const currency = new Collection();
+
+
+
+
+
+
+
 
 
 const client = new Client({ intents: [
@@ -32,17 +43,37 @@ for (const folder of commandFolders) {
     }
 }
 
+async function addBalance(id, amount) {
+    const user = currency.get(id);
+
+    if (user) {
+        user.balance += Number(amount);
+        return user.save();
+    }
+
+    const newUser = await Users.create({ user_id: id, balance: amount });
+    currency.set(id, newUser);
+
+    return newUser;
+}
+
+function getBalance(id) {
+    const user = currency.get(id);
+    return user ? user.balance : 0;
+}
 
 
 
 
-client.once(Events.ClientReady, readyClient => {
+client.once(Events.ClientReady, async readyClient => {
     console.log(`Ready! Logged in as ${readyClient.user.tag}`);
 });
 
 client.login(token);
 
 client.on(Events.InteractionCreate, async interaction => {
+    const storedBalances = await Users.findAll();
+    storedBalances.forEach(b => currency.set(b.user_id, b));
     if (!interaction.isChatInputCommand()) return;
 
     const command = interaction.client.commands.get(interaction.commandName);
@@ -65,13 +96,21 @@ client.on(Events.InteractionCreate, async interaction => {
 });
 
 client.on("messageCreate", async msg => {
+    if (msg.author.bot) return;
+    const storedBalances = await Users.findAll();
+    storedBalances.forEach(b => currency.set(b.user_id, b));
+    addBalance(msg.author.id, 1)
     if (msg.content[0] === '-') {
         let messageArray = msg.content.split(" ");
         const command = messageArray[0].substring(1);
         switch (command) {
             case "help":
                 console.log(`${msg.author.username} sent command ${command}`);
-                msg.reply(`yes\nhelp\nha!`);
+                msg.reply('hlep')
+
+
+
+
                 break;
             case "hello":
                 console.log(`${msg.author.username} sent command ${command}`);
@@ -91,69 +130,6 @@ client.on("messageCreate", async msg => {
                     msg.reply(`Sum of numbers is ${sum}`);
                 }
                 break;
-            case "tanya":
-                console.log(`${msg.author.username} sent command ${command}`);
-                Booru.search('safebooru', ['tanya_degurechaff', 'solo'], {limit : 1, random: true}).then(
-                    posts => {
-                        for (let post of posts) msg.reply(post.fileUrl)
-
-                    },
-                )
-                break;
-            case "makima":
-                console.log(`${msg.author.username} sent command ${command}`);
-                Booru.search('safebooru', ['makima_(chainsaw_man)', 'solo'], {limit : 1, random: true}).then(
-                    posts => {
-                        for (let post of posts) msg.reply(post.fileUrl)
-
-                    },
-                )
-                break;
-            case "frieren":
-                console.log(`${msg.author.username} sent command ${command}`);
-                Booru.search('safebooru', ['frieren', 'solo'], {limit : 1, random: true}).then(
-                    posts => {
-                        for (let post of posts) msg.reply(post.fileUrl)
-
-                    },
-                )
-                break;
-            case "picture":
-                messageArray = messageArray.slice(1)
-                let newQuery = ""
-                for (let string of messageArray) {
-                    newQuery = newQuery + string + "_"
-                }
-                newQuery = newQuery.slice(0, -1);
-                console.log(`${msg.author.username} sent command ${command} and queried ${newQuery}`);
-                Booru.search('safebooru', [newQuery, 'solo'], {limit : 1, random: true}).then(
-                    posts => {
-                        if (posts.length === 0) {
-                            newQuery = ""
-                            const temp = messageArray[0]
-                            messageArray[0] = messageArray[1]
-                            messageArray[1] = temp
-                            for (let string of messageArray) {
-                                newQuery = newQuery + string + "_"
-                            }
-                            newQuery = newQuery.slice(0, -1);
-                            Booru.search('safebooru', [newQuery, 'solo'], {limit: 1, random: true}).then(
-                                posts => {
-                                        if (posts.length === 0) {
-                                            msg.reply('Query either does not exist or is formatted incorrectly')
-                                        } else {
-                                            for (let post of posts) msg.reply(post.fileUrl)
-                                        }
-
-                                }
-                            );
-
-                        } else {
-                            for (let post of posts) msg.reply(post.fileUrl)
-                        }
-                    }
-                )
-                break;
             case "coinflip":
                 const flip = Math.random();
                 if (flip > 0.5) {
@@ -162,6 +138,54 @@ client.on("messageCreate", async msg => {
                     msg.reply("Tails!")
                 }
                 break;
+            case "anime":
+                let name = ""
+                messageArray.shift()
+                for (let string of messageArray) {
+                    name = name + string + " "
+                }
+                console.log(name)
+
+                malScraper.getInfoFromName(name).then(
+                    (data) => msg.reply(`**${data.title}**\n\n${data.picture}\n${data.synopsis}`),
+                )
+                let counter = 0
+                search.search("anime", {
+                    maxResults: 5,
+                    has: 5,
+                    term: name,
+
+                }).then(animes => {
+                    for (let anime of animes) {
+                        console.log(anime.title)
+                        counter++
+                    }
+                    console.log(`Number of animes = ${counter}\n`)
+                })
+
+
+                break;
+
+
+            case "inventory":
+                const target = msg.author.id
+                const user = await Users.findOne({ where: { user_id: (target) } });
+                const items = await user.getItems();
+
+                if (!items.length) {
+                    msg.reply(`${msg.author.username} has absolutely nothing!`);
+                } else {
+                    msg.reply(`${msg.author.username} currently has ${items.map(i => `${i.amount} ${i.item.name}`).join(', ')}`);
+                }
+                break;
+
+            case "shop":
+                const shopItems = await CurrencyShop.findAll();
+                msg.reply(codeBlock(shopItems.map(i => `${i.name}: ${i.cost}💰`).join('\n')));
+                break;
+
+
+
 
         }
 
