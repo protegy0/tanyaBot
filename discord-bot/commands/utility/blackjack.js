@@ -3,10 +3,6 @@ const wait = require('node:timers/promises').setTimeout;
 const { Users } = require('../../dbObjects.js');
 const currency = new Collection()
 
-const Op = require('sequelize');
-
-
-
 function getBalance(id) {
     const user = currency.get(id);
     return user ? user.balance : 0;
@@ -43,7 +39,7 @@ const row = new ActionRowBuilder()
 function card() {
     const percentTen = Math.random();
     let randomNumber = 0;
-    if (percentTen < 0.38) {
+    if (percentTen < 0.308) {
         randomNumber = 10;
     } else {
         randomNumber = Math.floor(Math.random() * 11) + 1;
@@ -86,6 +82,7 @@ module.exports = {
             interaction.reply({
                 content: "You are trying to bet more than you own, try again!",
                 components: [],
+                ephemeral: true,
             });
             hit.setDisabled(true);
             stand.setDisabled(true);

@@ -1,34 +1,19 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const { Client, Collection, Events, GatewayIntentBits, ButtonBuilder, ButtonStyle, ActionRowBuilder, codeBlock } = require('discord.js');
-const { Users, CurrencyShop } = require('./dbObjects.js');
+const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
+const { Users } = require('./dbObjects.js');
 const { token } = require('./config.json');
-const Op = require('sequelize');
-const Booru = require('booru');
-const malScraper = require('mal-scraper');
-const search = malScraper.search
 const currency = new Collection();
-
-
-
-
-
-
-
-
-
+const dailyTimes = new Collection();
 const client = new Client({ intents: [
                                                             GatewayIntentBits.Guilds,
                                                             GatewayIntentBits.GuildMessages,
                                                             GatewayIntentBits.MessageContent,
                                                             GatewayIntentBits.GuildMembers
                                                             ] });
-
 client.commands = new Collection();
-
 const foldersPath = path.join(__dirname, 'commands');
 const commandFolders = fs.readdirSync(foldersPath);
-
 for (const folder of commandFolders) {
     const commandsPath = path.join(foldersPath, folder);
     const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
@@ -42,46 +27,33 @@ for (const folder of commandFolders) {
         }
     }
 }
-
 async function addBalance(id, amount) {
     const user = currency.get(id);
-
     if (user) {
         user.balance += Number(amount);
         return user.save();
     }
-
     const newUser = await Users.create({ user_id: id, balance: amount });
     currency.set(id, newUser);
-
     return newUser;
 }
-
-function getBalance(id) {
-    const user = currency.get(id);
-    return user ? user.balance : 0;
-}
-
-
-
-
 client.once(Events.ClientReady, async readyClient => {
     console.log(`Ready! Logged in as ${readyClient.user.tag}`);
 });
-
 client.login(token);
-
 client.on(Events.InteractionCreate, async interaction => {
     const storedBalances = await Users.findAll();
+    const storedDailies = await Users.findAll();
+    storedDailies.forEach(b => dailyTimes.set(b.user_id, b));
     storedBalances.forEach(b => currency.set(b.user_id, b));
-    if (!interaction.isChatInputCommand()) return;
+    addBalance(interaction.user.id, 0)
 
+    if (!interaction.isChatInputCommand()) return;
     const command = interaction.client.commands.get(interaction.commandName);
     if (!command) {
         console.error(`No command matching ${interaction.commandName} was found.`);
         return;
     }
-
     try {
         await command.execute(interaction);
     } catch (error) {
@@ -92,105 +64,22 @@ client.on(Events.InteractionCreate, async interaction => {
             await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
         }
     }
-
 });
 
 client.on("messageCreate", async msg => {
     if (msg.author.bot) return;
     const storedBalances = await Users.findAll();
     storedBalances.forEach(b => currency.set(b.user_id, b));
+    const storedDailies = await Users.findAll();
+    storedDailies.forEach(b => dailyTimes.set(b.user_id, b));
     addBalance(msg.author.id, 1)
-    if (msg.content[0] === '-') {
-        let messageArray = msg.content.split(" ");
-        const command = messageArray[0].substring(1);
-        switch (command) {
-            case "help":
-                console.log(`${msg.author.username} sent command ${command}`);
-                msg.reply('hlep')
-
-
-
-
-                break;
-            case "hello":
-                console.log(`${msg.author.username} sent command ${command}`);
-                msg.reply(`Hello ${msg.author.username}`);
-                break;
-            case "math":
-                console.log(`${msg.author.username} sent command ${command}`);
-                msg.reply(`I love math!`);
-                break;
-            case "add":
-                console.log(`${msg.author.username} sent command ${command}`);
-                const numbers = messageArray[1].split(",");
-                const sum = parseInt(numbers[0]) + parseInt(numbers[1]);
-                if (isNaN(sum)) {
-                    msg.reply("Something other than a number was provided.");
-                } else {
-                    msg.reply(`Sum of numbers is ${sum}`);
-                }
-                break;
-            case "coinflip":
-                const flip = Math.random();
-                if (flip > 0.5) {
-                    msg.reply("Heads!")
-                } else {
-                    msg.reply("Tails!")
-                }
-                break;
-            case "anime":
-                let name = ""
-                messageArray.shift()
-                for (let string of messageArray) {
-                    name = name + string + " "
-                }
-                console.log(name)
-
-                malScraper.getInfoFromName(name).then(
-                    (data) => msg.reply(`**${data.title}**\n\n${data.picture}\n${data.synopsis}`),
-                )
-                let counter = 0
-                search.search("anime", {
-                    maxResults: 5,
-                    has: 5,
-                    term: name,
-
-                }).then(animes => {
-                    for (let anime of animes) {
-                        console.log(anime.title)
-                        counter++
-                    }
-                    console.log(`Number of animes = ${counter}\n`)
-                })
-
-
-                break;
-
-
-            case "inventory":
-                const target = msg.author.id
-                const user = await Users.findOne({ where: { user_id: (target) } });
-                const items = await user.getItems();
-
-                if (!items.length) {
-                    msg.reply(`${msg.author.username} has absolutely nothing!`);
-                } else {
-                    msg.reply(`${msg.author.username} currently has ${items.map(i => `${i.amount} ${i.item.name}`).join(', ')}`);
-                }
-                break;
-
-            case "shop":
-                const shopItems = await CurrencyShop.findAll();
-                msg.reply(codeBlock(shopItems.map(i => `${i.name}: ${i.cost}💰`).join('\n')));
-                break;
-
-
-
-
-        }
-
-
-    }
+//    if (msg.content[0] === '-') {
+//        let messageArray = msg.content.split(" ");
+//       const command = messageArray[0].substring(1);
+//        switch (command) {
+//
+//        }
+//    }
 });
 
 

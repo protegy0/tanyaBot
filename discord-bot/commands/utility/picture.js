@@ -27,7 +27,10 @@ module.exports = {
                     Booru.search('safebooru', [newQuery, 'solo'], {limit: 1, random: true}).then(
                         posts => {
                             if (posts.length === 0) {
-                                interaction.reply('Query either does not exist or is formatted incorrectly')
+                                interaction.reply({
+                                    content: 'Query either does not exist or is formatted incorrectly',
+                                    ephemeral: true,
+                                })
                             } else {
                                 for (let post of posts) interaction.reply(post.fileUrl)
                             }
