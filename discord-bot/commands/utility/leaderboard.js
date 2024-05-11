@@ -10,6 +10,7 @@ module.exports = {
         const storedBalances = await Users.findAll();
         storedBalances.forEach(b => currency.set(b.user_id, b));
 
+
         interaction.reply(
             codeBlock(
                 currency.sort((a, b) => b.balance - a.balance)
@@ -19,5 +20,6 @@ module.exports = {
                     .join('\n'),
             ),
         )
+
     }
 }

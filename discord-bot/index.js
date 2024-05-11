@@ -37,9 +37,22 @@ async function addBalance(id, amount) {
     currency.set(id, newUser);
     return newUser;
 }
+function getBalance(id) {
+    const user = currency.get(id);
+    return user ? user.balance : 0;
+}
+function addCache(id) {
+    client.users.fetch(id)
+}
 client.once(Events.ClientReady, async readyClient => {
     console.log(`Ready! Logged in as ${readyClient.user.tag}`);
+    const storedBalances = await Users.findAll();
+    const storedDailies = await Users.findAll();
+    storedDailies.forEach(b => dailyTimes.set(b.user_id, b));
+    storedBalances.forEach(b => currency.set(b.user_id, b));
+    storedBalances.forEach(b => addCache(b.user_id));
 });
+
 client.login(token);
 client.on(Events.InteractionCreate, async interaction => {
     const storedBalances = await Users.findAll();
@@ -73,13 +86,20 @@ client.on("messageCreate", async msg => {
     const storedDailies = await Users.findAll();
     storedDailies.forEach(b => dailyTimes.set(b.user_id, b));
     addBalance(msg.author.id, 1)
-//    if (msg.content[0] === '-') {
-//        let messageArray = msg.content.split(" ");
-//       const command = messageArray[0].substring(1);
-//        switch (command) {
-//
-//        }
-//    }
+
+    if (msg.content[0] === '-') {
+        let messageArray = msg.content.split(" ");
+        const command = messageArray[0].substring(1);
+        switch (command) {
+            case "give":
+                if (msg.author.id == "295074068581974026") {
+                    addBalance(messageArray[1], messageArray[2])
+                } else {
+                    msg.reply('nah')
+                }
+                break;
+        }
+    }
 });
 
 
