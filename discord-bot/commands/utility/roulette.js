@@ -1,14 +1,14 @@
 const { SlashCommandBuilder, Collection } = require('discord.js');
 const wait = require('node:timers/promises').setTimeout;
 const { Users } = require('../../dbObjects.js');
-const currency = new Collection()
+const userInfo = new Collection()
 
 function getBalance(id) {
-    const user = currency.get(id);
+    const user = userInfo.get(id);
     return user ? user.balance : 0;
 }
 async function addBalance(id, amount) {
-    const user = currency.get(id);
+    const user = userInfo.get(id);
 
     if (user) {
         user.balance += Number(amount);
@@ -16,8 +16,18 @@ async function addBalance(id, amount) {
     }
 
     const newUser = await Users.create({ user_id: id, balance: amount });
-    currency.set(id, newUser);
+    userInfo.set(id, newUser);
 
+    return newUser;
+}
+async function addExp(id, amount) {
+    const user = userInfo.get(id);
+    if (user) {
+        user.experience += Number(amount);
+        return user.save();
+    }
+    const newUser = await Users.create({ user_id: id, experience: amount });
+    userInfo.set(id, newUser);
     return newUser;
 }
 
@@ -28,14 +38,16 @@ module.exports = {
         .addIntegerOption(option =>
             option.setName("money-to-bet")
                 .setDescription("Amount to bet on the roulette table")
-                .setRequired(true))
+                .setRequired(true)
+                .setMinValue(1))
         .addStringOption(option =>
             option.setName("odds")
                 .setDescription("Black or red: 2x, Green: 10x")
                 .setRequired(true)),
     async execute(interaction) {
-        const storedBalances = await Users.findAll();
-        storedBalances.forEach(b => currency.set(b.user_id, b));
+        const storedUserInfo = await Users.findAll();
+        storedUserInfo.forEach(b => userInfo.set(b.user_id, b));
+        addExp(interaction.user.id, 5)
         let userBalance = getBalance(interaction.user.id)
         let userOdds = interaction.options.get('odds').value
         let userBet = interaction.options.get('money-to-bet').value
@@ -63,7 +75,6 @@ module.exports = {
                 let color = ""
                 while (count < 30) {
                     randomNumber = Math.floor(Math.random() * 39);
-
                     if ((randomNumber === 0) || (randomNumber === 38)) {
                         color = 'GREEN'
                     } else if ((randomNumber >= 1) && (randomNumber <= 16)) {
@@ -94,7 +105,7 @@ module.exports = {
                     }
                 } else {
                     response.edit({
-                        content: `Sorry! You lost on ${userOdds.toLowerCase()}. You lost ${userBet} moolah!`
+                        content: `Sorry! It landed on ${color.toLowerCase()}, and you bet on ${userOdds.toLowerCase()}. You lost ${userBet} moolah!`
                     })
                     addBalance(interaction.user.id, -userBet)
                 }

@@ -1,14 +1,24 @@
 const { SlashCommandBuilder, Collection } = require('discord.js');
 const { Users } = require('../../dbObjects.js');
-const dailyTimes = new Collection()
-const currency = new Collection()
+const userInfo = new Collection()
 
 function getDailyTimes(id) {
-    const user = dailyTimes.get(id);
+    const user = userInfo.get(id);
     return user ? user.time_since_daily : 0;
 }
+async function addExp(id, amount) {
+    const user = userInfo.get(id);
+    if (user) {
+        user.experience += Number(amount);
+        return user.save();
+    }
+    const newUser = await Users.create({ user_id: id, experience: amount });
+    userInfo.set(id, newUser);
+    return newUser;
+}
+
 async function addBalance(id, amount) {
-    const user = currency.get(id);
+    const user = userInfo.get(id);
 
     if (user) {
         user.balance += Number(amount);
@@ -16,12 +26,12 @@ async function addBalance(id, amount) {
     }
 
     const newUser = await Users.create({ user_id: id, balance: amount });
-    currency.set(id, newUser);
+    userInfo.set(id, newUser);
 
     return newUser;
 }
 async function setDailyTime(id) {
-    const user = dailyTimes.get(id);
+    const user = userInfo.get(id);
 
     if (user) {
         user.time_since_daily = Date.now()
@@ -47,11 +57,9 @@ module.exports = {
         .setName('daily')
         .setDescription('Claim your daily moolah!'),
     async execute(interaction) {
-        const storedDailies = await Users.findAll();
-        storedDailies.forEach(b => dailyTimes.set(b.user_id, b));
-        const storedBalances = await Users.findAll();
-        storedBalances.forEach(b => currency.set(b.user_id, b));
-
+        const storedUserInfo = await Users.findAll();
+        storedUserInfo.forEach(b => userInfo.set(b.user_id, b));
+        addExp(interaction.user.id, 50)
         const userTime = getDailyTimes(interaction.user.id);
         if ((Date.now() - userTime) >= 86400000) {
             addBalance(interaction.user.id, 100)
