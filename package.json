@@ -1,0 +1,21 @@
+{
+  "name": "discordbottest",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "booru": "^2.6.5",
+    "chatgpt": "^5.2.5",
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.4.5",
+    "mal-scraper": "^2.13.1",
+    "sequelize": "^6.37.3",
+    "sqlite3": "^5.1.7"
+  }
+}
