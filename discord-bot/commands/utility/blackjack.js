@@ -121,6 +121,7 @@ module.exports = {
         let userCardString = ''
         let dealerCardString = ''
         let cardChosen = 0
+        let aceDrawn = 0;
 
 
 
@@ -132,6 +133,9 @@ module.exports = {
             });
         } else {
             cardChosen = card(cards)
+            if (cardChosen === 1) {
+                aceDrawn += 1
+            }
             if (cardChosen > 10) {
                 currentValue += 10
             } else {
@@ -143,6 +147,9 @@ module.exports = {
             }
             userCardString = userCardString + cardGiven(cardChosen)
             cardChosen = card(cards)
+            if (cardChosen === 1) {
+                aceDrawn += 1
+            }
             if (cardChosen > 10) {
                 currentValue += 10
             } else {
@@ -209,10 +216,22 @@ module.exports = {
                         userCardString = userCardString + cardGiven(cardChosen)
 
                         if (currentValue > 21) {
-                            interaction.update({
-                                content: `You went past 21 with ${userCardString} (${currentValue}). You lost ${betAmount} moolah!`,
-                                components: [],
-                            });
+                            while (aceDrawn > 0) {
+                                currentValue -= 10
+                                aceDrawn -= 1
+                            }
+                            if (currentValue > 21) {
+                                interaction.update({
+                                    content: `You went past 21 with ${userCardString} (${currentValue}). You lost ${betAmount} moolah!`,
+                                    components: [],
+                                });
+                            } else {
+                                interaction.update({
+                                    content: `You've got ${userCardString} (${currentValue})\ntanyaBot: ${dealerCardString} (${dealerValue})`,
+                                    components: [row],
+                                })
+                            }
+
                             await addBalance(interaction.user.id, -betAmount)
 
 
@@ -255,7 +274,7 @@ module.exports = {
                             await wait(2500)
                             if (dealerValue === currentValue) {
                                 response.edit({
-                                    content: `Bust!\n${interaction.user.username}: ${userCardString} (${currentValue})\ntanyaBot: ${dealerCardString} (${dealerValue})\nNo moolah lost or gained!`
+                                    content: `Draw!\n${interaction.user.username}: ${userCardString} (${currentValue})\ntanyaBot: ${dealerCardString} (${dealerValue})\nNo moolah lost or gained!`
                                 })
                             } else if (dealerValue <= 21) {
                                 response.edit({
@@ -301,7 +320,7 @@ module.exports = {
                         await wait(2500)
                         if (dealerValue === currentValue) {
                             response.edit({
-                                content: `Bust!\n${interaction.user.username}: ${userCardString} (${currentValue})\ntanyaBot: ${dealerCardString} (${dealerValue})\nNo moolah lost or gained!`
+                                content: `Draw!\n${interaction.user.username}: ${userCardString} (${currentValue})\ntanyaBot: ${dealerCardString} (${dealerValue})\nNo moolah lost or gained!`
                             })
                         } else if (dealerValue <= 21) {
                             response.edit({

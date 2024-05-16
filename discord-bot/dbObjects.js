@@ -17,8 +17,10 @@ const CurrencyShop = require('./models/CurrencyShop.js')(sequelize, Sequelize.Da
 const UserItems = require('./models/UserItems.js')(sequelize, Sequelize.DataTypes);
 const UserFinds = require('./models/UserFinds.js')(sequelize, Sequelize.DataTypes);
 const FindDatabase = require('./models/FindDatabase.js')(sequelize, Sequelize.DataTypes)
+const GemShop = require('./models/GemShop.js')(sequelize, Sequelize.DataTypes);
 
 UserItems.belongsTo(CurrencyShop, { foreignKey: 'item_id', as: 'item' });
+UserItems.belongsTo(GemShop, { foreignKey: 'item_id', as: 'gemItem' });
 UserFinds.belongsTo(FindDatabase, { foreignKey: 'find_id', as: 'find'});
 
 Reflect.defineProperty(Users.prototype, 'addItem', {
@@ -74,7 +76,7 @@ Reflect.defineProperty(Users.prototype, 'getItems', {
     value: function getItems() {
         return UserItems.findAll({
             where: { user_id: this.user_id },
-            include: ['item'],
+            include: ['item', 'gemItem'],
         });
     },
 });
@@ -88,4 +90,4 @@ Reflect.defineProperty(Users.prototype, 'getFinds', {
     },
 });
 
-module.exports = { Users, CurrencyShop, UserItems, FindDatabase };
+module.exports = { Users, CurrencyShop, UserItems, FindDatabase, GemShop };

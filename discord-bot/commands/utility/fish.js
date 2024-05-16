@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, Collection } = require('discord.js');
-const { Users, CurrencyShop, FindDatabase } = require('../../dbObjects.js');
+const { Users, CurrencyShop, FindDatabase, GemShop } = require('../../dbObjects.js');
 const {Op} = require("sequelize");
 const userInfo = new Collection()
 async function addExp(id, amount) {
@@ -39,26 +39,35 @@ module.exports = {
                     { name: "Dirty Bait", value: 'dirty'},
                     { name: "Clean Bait", value: 'clean'},
                     { name: "Great Bait", value: 'great'},
+                    { name: "Mystical Bait", value: 'mystical'},
                 )),
     async execute(interaction) {
         const storedUserInfo = await Users.findAll();
         storedUserInfo.forEach(b => userInfo.set(b.user_id, b));
         let randomNumber = 0
         const userId = interaction.user.id
-        addExp(userId, 10)
+        addExp(userId, 4)
         const user = await Users.findOne({ where: { user_id: (userId) } });
         const items = await user.getItems();
         let amountDirtyBait = ""
         let amountGreatBait = ""
         let amountCleanBait = ""
+        let amountMysticalBait = ""
         items.map(i => {
-            if (i.item.name === "Dirty Bait") {
-                amountDirtyBait = i.amount
-            } else if (i.item.name === "Great Bait") {
-                amountGreatBait = i.amount
-            } else if (i.item.name === "Clean Bait") {
-                amountCleanBait = i.amount
+            if (i.item === null) {
+                if (i.gemItem.name === 'Mystical Bait') {
+                    amountMysticalBait = i.amount
+                }
+            } else {
+                if (i.item.name === "Dirty Bait") {
+                    amountDirtyBait = i.amount
+                } else if (i.item.name === "Great Bait") {
+                    amountGreatBait = i.amount
+                } else if (i.item.name === "Clean Bait") {
+                    amountCleanBait = i.amount
+                }
             }
+
         })
         let enoughBait = false;
         const request = interaction.options.get('bait').value
@@ -76,8 +85,19 @@ module.exports = {
                 itemName = 'Great Bait'
                 randomNumber = Math.floor(Math.random() * (751)) + 250;
                 break;
+            case 'mystical':
+                itemName = 'Mystical Bait'
+                randomNumber = Math.floor(Math.random() * (101)) + 900;
+                break
         }
-        const item = await CurrencyShop.findOne({ where: { name: { [Op.like]: itemName } } });
+        if (interaction.options.get('bait').value === 'mystical') {
+            const item = await GemShop.findOne({ where: { name: { [Op.like]: itemName } } });
+            user.removeItem(item)
+        } else {
+            const item = await CurrencyShop.findOne({ where: { name: { [Op.like]: itemName } } });
+            user.removeItem(item)
+        }
+
 
         if (request === 'dirty') {
             enoughBait = parseInt(amountDirtyBait) > 0;
@@ -85,6 +105,8 @@ module.exports = {
             enoughBait = parseInt(amountCleanBait) > 0;
         } else if (request === 'great') {
             enoughBait = parseInt(amountGreatBait) > 0;
+        } else if (request === 'mystical') {
+            enoughBait = parseInt(amountMysticalBait) > 0;
         }
 
         if (enoughBait) {
@@ -129,7 +151,6 @@ module.exports = {
                 const find = await FindDatabase.findOne({ where: { name: { [Op.like]: '🌠' } } });
                 await user.addFind(find)
             }
-            user.removeItem(item)
         } else {
             interaction.reply({
                 content: `You don't have enough of this type of bait!`,
