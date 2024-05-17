@@ -36,7 +36,7 @@ async function addBalance(id, amount) {
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('convert')
-        .setDescription('Convert your gems to moolah! 1 gem = 50 moolah')
+        .setDescription('Convert your gems to moolah! 1 gem = 25 moolah')
         .addIntegerOption(
             option =>
                 option.setName('amount')
@@ -51,7 +51,7 @@ module.exports = {
         if (getGems(userId) >= amount) {
             addGems(userId, -amount);
             addBalance(userId, (amount * 50));
-            interaction.reply(`Converted ${amount} gems to ${amount * 50} moolah!`)
+            interaction.reply(`Converted ${amount} gems to ${amount * 25} moolah!`)
         } else {
             interaction.reply({
                 content: `You don't have enough gems to do that.`,

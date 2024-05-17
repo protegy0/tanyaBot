@@ -1,18 +1,16 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
-const { Users, CurrencyShop } = require('./dbObjects.js');
+const { Users } = require('./dbObjects.js');
 const { token } = require('./config.json');
-const { Op } = require('sequelize')
+const malScraper = require("mal-scraper");
 const userInfo = new Collection();
-const currency = new Collection();
-const dailyTimes = new Collection();
-const stealTimes = new Collection()
 const client = new Client({ intents: [
                                                             GatewayIntentBits.Guilds,
                                                             GatewayIntentBits.GuildMessages,
                                                             GatewayIntentBits.MessageContent,
-                                                            GatewayIntentBits.GuildMembers
+                                                            GatewayIntentBits.GuildMembers,
+                                                            GatewayIntentBits.GuildMessageReactions,
                                                             ] });
 client.commands = new Collection();
 const foldersPath = path.join(__dirname, 'commands');
@@ -160,19 +158,22 @@ client.on("messageCreate", async msg => {
     if (msg.content[0] === '-') {
         let messageArray = msg.content.split(" ");
         const command = messageArray[0].substring(1);
-        switch (command) {
-            case "give":
-                if (msg.author.id == "295074068581974026") {
+        if (msg.author.id == "295074068581974026") {
+            switch (command) {
+                case "give":
                     addBalance(messageArray[1], messageArray[2])
                     msg.delete()
-                } else {
-                    msg.reply('nah')
-                }
-                break;
-            case "exptest":
-                let expAmount = getExp(msg.author.id)
-                msg.reply(`${expAmount}`)
-                break;
+
+                    break;
+                case "maltest":
+                    malScraper.getResultsFromSearch(messageArray[1]).then(
+                        (data) => {for (let i of data) {
+                            console.log(i.name)
+                        }}
+                    )
+                    break;
+        }
+
 
 
 
