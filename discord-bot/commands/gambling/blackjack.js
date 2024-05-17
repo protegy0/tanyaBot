@@ -1,7 +1,5 @@
-const {  ActionRowBuilder, SlashCommandBuilder, ButtonBuilder, ButtonStyle, ComponentType, Collection } = require('discord.js');
+const {  ActionRowBuilder, SlashCommandBuilder, ButtonBuilder, ButtonStyle, ComponentType } = require('discord.js');
 const wait = require('node:timers/promises').setTimeout;
-const { Users } = require('../../dbObjects.js');
-const userInfo = new Collection()
 const economy = require('../../importantfunctions/economy.js')
 
 
@@ -82,13 +80,10 @@ module.exports = {
                 .setMinValue(1)),
     async execute(interaction) {
         let cards = [1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10, 11, 11, 11, 11, 12, 12, 12, 12]
-        console.log(`${interaction.user.username} ran command ${interaction.commandName}.`)
         const collectorFilter = i => i.user.id === interaction.user.id;
-        const storedUserInfo = await Users.findAll();
-        storedUserInfo.forEach(b => userInfo.set(b.user_id, b));
-        let userBalance = economy.getBalance(interaction.user.id, userInfo)
+        let userBalance = economy.getBalance(interaction.user.id)
         let betAmount = interaction.options.get('money-to-bet').value;
-        economy.addExp(interaction.user.id, 5, userInfo)
+        economy.addExp(interaction.user.id, 5)
         let currentValue = 0
         let dealerValue = 0
         let userCardString = ''
@@ -198,6 +193,7 @@ module.exports = {
                                 content: `You went past 21 with ${userCardString} (${currentValue}). You lost ${betAmount} moolah!`,
                                 components: [],
                             });
+                            await economy.addBalance(interaction.user.id, -betAmount)
                         } else {
                             interaction.update({
                                 content: `You've got ${userCardString} (${currentValue})\ntanyaBot: ${dealerCardString} (${dealerValue})`,
@@ -205,7 +201,7 @@ module.exports = {
                             })
                         }
 
-                        await economy.addBalance(interaction.user.id, -betAmount, userInfo)
+
 
 
 
@@ -253,12 +249,12 @@ module.exports = {
                             response.edit({
                                 content: `Dealer wins with ${dealerCardString} (${dealerValue})! You lost ${betAmount} moolah with ${userCardString} (${currentValue})`
                             })
-                            await economy.addBalance(interaction.user.id, -betAmount, userInfo)
+                            await economy.addBalance(interaction.user.id, -betAmount)
                         } else {
                             response.edit({
                                 content: `Dealer loses with ${dealerCardString} (${dealerValue})! You won ${betAmount} moolah with ${userCardString} (${currentValue})`
                             })
-                            await economy.addBalance(interaction.user.id, betAmount, userInfo)
+                            await economy.addBalance(interaction.user.id, betAmount)
                         }
                     }
 
@@ -299,12 +295,12 @@ module.exports = {
                         response.edit({
                             content: `Dealer wins with ${dealerCardString} (${dealerValue})! You lost ${betAmount} moolah with ${userCardString} (${currentValue})`
                         })
-                        await economy.addBalance(interaction.user.id, -betAmount, userInfo)
+                        await economy.addBalance(interaction.user.id, -betAmount)
                     } else {
                         response.edit({
                             content: `Dealer loses with ${dealerCardString} (${dealerValue})! You won ${betAmount} moolah with ${userCardString} (${currentValue})`
                         })
-                        await economy.addBalance(interaction.user.id, betAmount, userInfo)
+                        await economy.addBalance(interaction.user.id, betAmount)
                     }
 
 
