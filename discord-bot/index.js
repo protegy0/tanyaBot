@@ -4,6 +4,7 @@ const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
 const { Users } = require('./dbObjects.js');
 const { token } = require('./config.json');
 const malScraper = require("mal-scraper");
+const economy = require('./importantfunctions/economy.js')
 const userInfo = new Collection();
 const client = new Client({ intents: [
                                                             GatewayIntentBits.Guilds,
@@ -28,61 +29,7 @@ for (const folder of commandFolders) {
         }
     }
 }
-async function addBalance(id, amount) {
-    const user = userInfo.get(id);
-    if (user) {
-        user.balance += Number(amount);
-        return user.save();
-    }
-    const newUser = await Users.create({ user_id: id, balance: amount });
-    userInfo.set(id, newUser);
-    return newUser;
-}
-async function addExp(id, amount) {
-    const user = userInfo.get(id);
-    if (user) {
-        user.experience += Number(amount);
-        return user.save();
-    }
-    const newUser = await Users.create({ user_id: id, experience: amount });
-    userInfo.set(id, newUser);
-    return newUser;
-}
-async function addGems(id, amount) {
-    const user = userInfo.get(id);
-    if (user) {
-        user.gems += Number(amount);
-        return user.save();
-    }
-    const newUser = await Users.create({ user_id: id, gems: amount });
-    userInfo.set(id, newUser);
-    return newUser;
-}
-async function increaseLevel(id) {
-    const user = userInfo.get(id);
-    if (user) {
-        user.level += 1;
-        return user.save();
-    }
-    const newUser = await Users.create({ user_id: id, level: 1 });
-    userInfo.set(id, newUser);
-    return newUser;
-}
-function calcLevel(experience) {
-    let level = 1
-    while ((experience > (100 * level)**1.1)) {
-        level += 1
-    }
-    return level
-}
-function getExp(id) {
-    const user = userInfo.get(id);
-    return user ? user.experience : 0;
-}
-function getLevel(id) {
-    const user = userInfo.get(id);
-    return user ? user.level : 1;
-}
+
 function addCache(id) {
     client.users.fetch(id)
 }
@@ -91,8 +38,6 @@ client.once(Events.ClientReady, async readyClient => {
     const storedUserInfo = await Users.findAll();
     storedUserInfo.forEach(b => userInfo.set(b.user_id, b));
     storedUserInfo.forEach(b => addCache(b.user_id));
-
-
 });
 
 client.login(token);
@@ -100,22 +45,17 @@ client.on(Events.InteractionCreate, async interaction => {
     const storedUserInfo = await Users.findAll();
     storedUserInfo.forEach(b => userInfo.set(b.user_id, b));
     storedUserInfo.forEach(b => addCache(b.user_id));
-    addBalance(interaction.user.id, 0)
+    await economy.addBalance(interaction.user.id, 0, userInfo)
 
-
-
-    let calculatedLevel = calcLevel(getExp(interaction.user.id))
-    let storedLevel = getLevel(interaction.user.id)
+    let calculatedLevel = economy.calcLevel(economy.getExp(interaction.user.id, userInfo))
+    let storedLevel = economy.getLevel(interaction.user.id, userInfo)
     if (calculatedLevel > storedLevel) {
         let gemReward = calculatedLevel * 5
         const channel = interaction.channelId
         client.channels.cache.get(channel).send(`<@${interaction.user.id}> leveled up to level ${calculatedLevel}! You earned ${gemReward} gems!`)
-        addGems(interaction.user.id, gemReward)
-        increaseLevel(interaction.user.id)
+        await economy.addGems(interaction.user.id, gemReward, userInfo)
+        await economy.increaseLevel(interaction.user.id, userInfo)
     }
-
-
-
 
     if (!interaction.isChatInputCommand()) return;
     const command = interaction.client.commands.get(interaction.commandName);
@@ -140,19 +80,16 @@ client.on("messageCreate", async msg => {
     const storedUserInfo = await Users.findAll();
     storedUserInfo.forEach(b => userInfo.set(b.user_id, b));
     storedUserInfo.forEach(b => addCache(b.user_id));
-    addExp(msg.author.id, 1)
+    await economy.addExp(msg.author.id, 1, userInfo)
 
-    let calculatedLevel = calcLevel(getExp(msg.author.id))
-    let storedLevel = getLevel(msg.author.id)
+    let calculatedLevel = economy.calcLevel(economy.getExp(msg.author.id, userInfo))
+    let storedLevel = economy.getLevel(msg.author.id, userInfo)
     if (calculatedLevel > storedLevel) {
         let gemReward = calculatedLevel * 5
-        msg.reply(`You leveled up to level ${calculatedLevel}! You earned ${gemReward} gems!`)
-        addGems(msg.author.id, gemReward)
-        increaseLevel(msg.author.id)
+        await msg.reply(`You leveled up to level ${calculatedLevel}! You earned ${gemReward} gems!`)
+        await economy.addGems(msg.author.id, gemReward, userInfo)
+        await economy.increaseLevel(msg.author.id, userInfo)
     }
-
-
-
 
 
     if (msg.content[0] === '-') {
@@ -160,11 +97,6 @@ client.on("messageCreate", async msg => {
         const command = messageArray[0].substring(1);
         if (msg.author.id == "295074068581974026") {
             switch (command) {
-                case "give":
-                    addBalance(messageArray[1], messageArray[2])
-                    msg.delete()
-
-                    break;
                 case "maltest":
                     malScraper.getResultsFromSearch(messageArray[1]).then(
                         (data) => {for (let i of data) {
