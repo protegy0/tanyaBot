@@ -47,6 +47,7 @@ client.on(Events.InteractionCreate, async interaction => {
     storedUserInfo.forEach(b => addCache(b.user_id));
     await economy.addBalance(interaction.user.id, 0, userInfo)
 
+    //Level calculation
     let calculatedLevel = economy.calcLevel(economy.getExp(interaction.user.id, userInfo))
     let storedLevel = economy.getLevel(interaction.user.id, userInfo)
     if (calculatedLevel > storedLevel) {
@@ -74,6 +75,7 @@ client.on(Events.InteractionCreate, async interaction => {
         }
     }
 });
+
 
 client.on("messageCreate", async msg => {
     if (msg.author.bot) return;
