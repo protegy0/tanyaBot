@@ -2,34 +2,7 @@ const { SlashCommandBuilder, Collection } = require('discord.js');
 const wait = require('node:timers/promises').setTimeout;
 const { Users } = require('../../dbObjects.js');
 const userInfo = new Collection()
-
-function getBalance(id) {
-    const user = userInfo.get(id);
-    return user ? user.balance : 0;
-}
-async function addBalance(id, amount) {
-    const user = userInfo.get(id);
-
-    if (user) {
-        user.balance += Number(amount);
-        return user.save();
-    }
-
-    const newUser = await Users.create({ user_id: id, balance: amount });
-    userInfo.set(id, newUser);
-
-    return newUser;
-}
-async function addExp(id, amount) {
-    const user = userInfo.get(id);
-    if (user) {
-        user.experience += Number(amount);
-        return user.save();
-    }
-    const newUser = await Users.create({ user_id: id, experience: amount });
-    userInfo.set(id, newUser);
-    return newUser;
-}
+const economy = require('../../importantfunctions/economy.js')
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -47,8 +20,8 @@ module.exports = {
     async execute(interaction) {
         const storedUserInfo = await Users.findAll();
         storedUserInfo.forEach(b => userInfo.set(b.user_id, b));
-        addExp(interaction.user.id, 5)
-        let userBalance = getBalance(interaction.user.id)
+        economy.addExp(interaction.user.id, 5, userInfo)
+        let userBalance = economy.getBalance(interaction.user.id, userInfo)
         let userOdds = interaction.options.get('odds').value
         let userBet = interaction.options.get('money-to-bet').value
         let randomNumber = 0;
@@ -96,18 +69,18 @@ module.exports = {
                         response.edit({
                             content: `Congrats! You won on ${userOdds.toLowerCase()}! You won ${userBet} moolah!`
                         })
-                        addBalance(interaction.user.id, userBet)
+                        economy.addBalance(interaction.user.id, userBet, userInfo)
                     } else {
                         response.edit({
                             content: `Congrats! You won on ${userOdds.toLowerCase()}! You won ${userBet * 10} moolah!`
                         })
-                        addBalance(interaction.user.id, userBet * 10)
+                        economy.addBalance(interaction.user.id, userBet * 10, userInfo)
                     }
                 } else {
                     response.edit({
                         content: `Sorry! It landed on ${color.toLowerCase()}, and you bet on ${userOdds.toLowerCase()}. You lost ${userBet} moolah!`
                     })
-                    addBalance(interaction.user.id, -userBet)
+                    economy.addBalance(interaction.user.id, -userBet, userInfo)
                 }
             }
         }

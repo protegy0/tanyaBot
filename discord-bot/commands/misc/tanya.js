@@ -2,16 +2,7 @@ const Booru = require('booru');
 const { SlashCommandBuilder, Collection } = require('discord.js');
 const {Users} = require("../../dbObjects");
 const userInfo = new Collection()
-async function addExp(id, amount) {
-    const user = userInfo.get(id);
-    if (user) {
-        user.experience += Number(amount);
-        return user.save();
-    }
-    const newUser = await Users.create({ user_id: id, experience: amount });
-    userInfo.set(id, newUser);
-    return newUser;
-}
+const economy = require('../../importantfunctions/economy.js')
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -28,7 +19,7 @@ module.exports = {
     async execute(interaction) {
         const storedUserInfo = await Users.findAll();
         storedUserInfo.forEach(b => userInfo.set(b.user_id, b));
-        addExp(interaction.user.id, 15)
+        economy.addExp(interaction.user.id, 15, userInfo)
         if (interaction.options.getSubcommand() === 'picture') {
             Booru.search('safebooru', ['tanya_degurechaff'], {limit: 1, random: true}).then(
                 posts => {

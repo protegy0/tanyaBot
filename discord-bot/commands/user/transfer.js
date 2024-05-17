@@ -1,23 +1,7 @@
 const { SlashCommandBuilder, Collection } = require('discord.js');
 const { Users } = require('../../dbObjects.js');
 const userInfo = new Collection()
-function getBalance(id) {
-    const user = userInfo.get(id);
-    return user ? user.balance : 0;
-}
-async function addBalance(id, amount) {
-    const user = userInfo.get(id);
-
-    if (user) {
-        user.balance += Number(amount);
-        return user.save();
-    }
-
-    const newUser = await Users.create({ user_id: id, balance: amount });
-    userInfo.set(id, newUser);
-
-    return newUser;
-}
+const economy = require('../../importantfunctions/economy.js')
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -37,15 +21,15 @@ module.exports = {
     async execute(interaction) {
         const storedUserInfo = await Users.findAll();
         storedUserInfo.forEach(b => userInfo.set(b.user_id, b));
-        let userBalance = getBalance(interaction.user.id)
+        let userBalance = economy.getBalance(interaction.user.id, userInfo)
         let userId = interaction.user.id
         let transferId = interaction.options.get('person1').value
         let transferAmount = interaction.options.get('transfer-amount').value
         if (transferAmount > userBalance) {
             interaction.reply('You do not have enough moolah to make this transfer!')
         } else {
-            addBalance(userId, -transferAmount)
-            addBalance(transferId, transferAmount)
+            economy.addBalance(userId, -transferAmount, userInfo)
+            economy.addBalance(transferId, transferAmount, userInfo)
             interaction.reply(`${transferAmount} moolah has been transferred from <@${userId}> to <@${transferId}>!`)
         }
     }

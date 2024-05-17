@@ -1,32 +1,7 @@
 const { SlashCommandBuilder, Collection } = require('discord.js');
 const { Users } = require('../../dbObjects.js');
 const userInfo = new Collection()
-async function addBalance(id, amount) {
-    const user = userInfo.get(id);
-
-    if (user) {
-        user.balance += Number(amount);
-        return user.save();
-    }
-
-    const newUser = await Users.create({ user_id: id, balance: amount });
-    userInfo.set(id, newUser);
-
-    return newUser;
-}
-async function addGems(id, amount) {
-    const user = userInfo.get(id);
-
-    if (user) {
-        user.gems += Number(amount);
-        return user.save();
-    }
-
-    const newUser = await Users.create({ user_id: id, gems: amount });
-    userInfo.set(id, newUser);
-
-    return newUser;
-}
+const economy = require('../../importantfunctions/economy.js')
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -62,13 +37,13 @@ module.exports = {
 
         if (interaction.user.id === '295074068581974026') {
             if (interaction.options.getSubcommand() === 'moolah') {
-                addBalance(interaction.options.get('user').value, interaction.options.get('amount').value)
+                economy.addBalance(interaction.options.get('user').value, interaction.options.get('amount').value, userInfo)
                 interaction.reply({
                     content: 'given',
                     ephemeral: true,
                 })
             } else {
-                addGems(interaction.options.get('user').value, interaction.options.get('amount').value)
+                economy.addGems(interaction.options.get('user').value, interaction.options.get('amount').value, userInfo)
                 interaction.reply({
                     content: 'given',
                     ephemeral: true,

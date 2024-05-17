@@ -1,45 +1,7 @@
 const { SlashCommandBuilder, Collection } = require('discord.js');
 const { Users } = require('../../dbObjects.js');
 const userInfo = new Collection()
-
-function getDailyTimes(id) {
-    const user = userInfo.get(id);
-    return user ? user.time_since_daily : 0;
-}
-async function addExp(id, amount) {
-    const user = userInfo.get(id);
-    if (user) {
-        user.experience += Number(amount);
-        return user.save();
-    }
-    const newUser = await Users.create({ user_id: id, experience: amount });
-    userInfo.set(id, newUser);
-    return newUser;
-}
-
-async function addBalance(id, amount) {
-    const user = userInfo.get(id);
-
-    if (user) {
-        user.balance += Number(amount);
-        return user.save();
-    }
-
-    const newUser = await Users.create({ user_id: id, balance: amount });
-    userInfo.set(id, newUser);
-
-    return newUser;
-}
-async function setDailyTime(id) {
-    const user = userInfo.get(id);
-
-    if (user) {
-        user.time_since_daily = Date.now()
-        return user.save();
-    }
-
-
-}
+const economy = require('../../importantfunctions/economy.js')
 
 function msToTime(ms) {
     let seconds = (ms / 1000).toFixed(1);
@@ -59,11 +21,11 @@ module.exports = {
     async execute(interaction) {
         const storedUserInfo = await Users.findAll();
         storedUserInfo.forEach(b => userInfo.set(b.user_id, b));
-        addExp(interaction.user.id, 50)
-        const userTime = getDailyTimes(interaction.user.id);
+        economy.addExp(interaction.user.id, 50, userInfo)
+        const userTime = economy.getDailyTimes(interaction.user.id, userInfo);
         if ((Date.now() - userTime) >= 86400000) {
-            addBalance(interaction.user.id, 100)
-            setDailyTime(interaction.user.id)
+            economy.addBalance(interaction.user.id, 100, userInfo)
+            economy.setDailyTime(interaction.user.id, userInfo)
             interaction.reply("You got 100 moolah!")
         } else {
             interaction.reply({

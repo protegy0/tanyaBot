@@ -2,34 +2,7 @@ const {  ActionRowBuilder, SlashCommandBuilder, ButtonBuilder, ButtonStyle, Comp
 const wait = require('node:timers/promises').setTimeout;
 const { Users } = require('../../dbObjects.js');
 const userInfo = new Collection()
-async function addExp(id, amount) {
-    const user = userInfo.get(id);
-    if (user) {
-        user.experience += Number(amount);
-        return user.save();
-    }
-    const newUser = await Users.create({ user_id: id, experience: amount });
-    userInfo.set(id, newUser);
-    return newUser;
-}
-
-function getBalance(id) {
-    const user = userInfo.get(id);
-    return user ? user.balance : 0;
-}
-async function addBalance(id, amount) {
-    const user = userInfo.get(id);
-
-    if (user) {
-        user.balance += Number(amount);
-        return user.save();
-    }
-
-    const newUser = await Users.create({ user_id: id, balance: amount });
-    userInfo.set(id, newUser);
-
-    return newUser;
-}
+const economy = require('../../importantfunctions/economy.js')
 
 
 
@@ -113,9 +86,9 @@ module.exports = {
         const collectorFilter = i => i.user.id === interaction.user.id;
         const storedUserInfo = await Users.findAll();
         storedUserInfo.forEach(b => userInfo.set(b.user_id, b));
-        let userBalance = getBalance(interaction.user.id)
+        let userBalance = economy.getBalance(interaction.user.id, userInfo)
         let betAmount = interaction.options.get('money-to-bet').value;
-        addExp(interaction.user.id, 5)
+        economy.addExp(interaction.user.id, 5, userInfo)
         let currentValue = 0
         let dealerValue = 0
         let userCardString = ''
@@ -175,124 +148,78 @@ module.exports = {
             dealerCardString = dealerCardString + cardGiven(cardChosen)
 
 
-                const response = await interaction.reply({
-                    content: `The dealer deals ${userCardString} (${currentValue}) do you want to hit or stand?\nThe dealer has ${dealerCardString} (${dealerValue})`,
-                    components: [row2],
-                });
+            const response = await interaction.reply({
+                content: `The dealer deals ${userCardString} (${currentValue}) do you want to hit or stand?\nThe dealer has ${dealerCardString} (${dealerValue})`,
+                components: [row2],
+            });
 
-                const collector = response.createMessageComponentCollector({
-                    componentType: ComponentType.Button,
-                    filter: collectorFilter,
-                });
+            const collector = response.createMessageComponentCollector({
+                componentType: ComponentType.Button,
+                filter: collectorFilter,
+            });
 
-                collector.on('collect', async (interaction) => {
+            collector.on('collect', async (interaction) => {
 
-                    if (interaction.customId === 'double') {
-                        if (userBalance > (betAmount * 2)) {
-                            betAmount *= 2;
-                            interaction.update({
-                                content: `You chose to double down! You've got ${userCardString} (${currentValue}), do you hit or stand?\nThe dealer has ${dealerCardString} (${dealerValue})`,
-                                components: [row]
-                            })
-                        } else {
-                            interaction.update({
-                                content: `You can't double down, you don't have enough moolah!\nYou've got ${userCardString} (${currentValue}), do you hit or stand?\nThe dealer has ${dealerCardString} (${dealerValue})`,
-                                components: [row]
-                            })
-                        }
-
+                if (interaction.customId === 'double') {
+                    if (userBalance > (betAmount * 2)) {
+                        betAmount *= 2;
+                        interaction.update({
+                            content: `You chose to double down! You've got ${userCardString} (${currentValue}), do you hit or stand?\nThe dealer has ${dealerCardString} (${dealerValue})`,
+                            components: [row]
+                        })
+                    } else {
+                        interaction.update({
+                            content: `You can't double down, you don't have enough moolah!\nYou've got ${userCardString} (${currentValue}), do you hit or stand?\nThe dealer has ${dealerCardString} (${dealerValue})`,
+                            components: [row]
+                        })
                     }
-                    if (interaction.customId === 'hit') {
-                        cardChosen = card(cards)
-                        if (cardChosen > 10) {
-                            currentValue += 10
+
+                }
+                if (interaction.customId === 'hit') {
+                    cardChosen = card(cards)
+                    if (cardChosen > 10) {
+                        currentValue += 10
+                    } else {
+                        if ((currentValue <= 10) && (cardChosen === 1)) {
+                            currentValue += 11
                         } else {
-                            if ((currentValue <= 10) && (cardChosen === 1)) {
-                                currentValue += 11
-                            } else {
-                                currentValue += cardChosen
-                            }
+                            currentValue += cardChosen
                         }
-                        userCardString = userCardString + cardGiven(cardChosen)
+                    }
+                    userCardString = userCardString + cardGiven(cardChosen)
 
+                    if (currentValue > 21) {
+                        while (aceDrawn > 0) {
+                            currentValue -= 10
+                            aceDrawn -= 1
+                        }
                         if (currentValue > 21) {
-                            while (aceDrawn > 0) {
-                                currentValue -= 10
-                                aceDrawn -= 1
-                            }
-                            if (currentValue > 21) {
-                                interaction.update({
-                                    content: `You went past 21 with ${userCardString} (${currentValue}). You lost ${betAmount} moolah!`,
-                                    components: [],
-                                });
-                            } else {
-                                interaction.update({
-                                    content: `You've got ${userCardString} (${currentValue})\ntanyaBot: ${dealerCardString} (${dealerValue})`,
-                                    components: [row],
-                                })
-                            }
-
-                            await addBalance(interaction.user.id, -betAmount)
-
-
-
-                        } else if (currentValue < 21) {
-
+                            interaction.update({
+                                content: `You went past 21 with ${userCardString} (${currentValue}). You lost ${betAmount} moolah!`,
+                                components: [],
+                            });
+                        } else {
                             interaction.update({
                                 content: `You've got ${userCardString} (${currentValue})\ntanyaBot: ${dealerCardString} (${dealerValue})`,
                                 components: [row],
-                            });
-
-
-                        } else if (currentValue === 21) {
-                            interaction.update({
-                                content: `You landed on 21 with ${userCardString}! Now the dealer will play.`,
-                                components: [],
-                            });
-                            await wait(1500)
-                            response.edit({
-                                content: `${interaction.user.username}: ${userCardString} (${currentValue})\ntanyaBot: ${dealerCardString} (${dealerValue})`,
                             })
-                            await wait(1500)
-                            while (dealerValue < currentValue) {
-                                cardChosen = card(cards)
-                                if (cardChosen > 10) {
-                                    dealerValue += 10
-                                } else {
-                                    if ((dealerValue <= 10) && (cardChosen === 1)) {
-                                        dealerValue += 11
-                                    } else {
-                                        dealerValue += cardChosen
-                                    }
-                                }
-                                dealerCardString = dealerCardString + cardGiven(cardChosen)
-                                await wait(1000)
-                                response.edit({
-                                    content: `${interaction.user.username}: ${userCardString} (${currentValue})\ntanyaBot: ${dealerCardString} (${dealerValue})`,
-                                })
-                            }
-                            await wait(2500)
-                            if (dealerValue === currentValue) {
-                                response.edit({
-                                    content: `Draw!\n${interaction.user.username}: ${userCardString} (${currentValue})\ntanyaBot: ${dealerCardString} (${dealerValue})\nNo moolah lost or gained!`
-                                })
-                            } else if (dealerValue <= 21) {
-                                response.edit({
-                                    content: `Dealer wins with ${dealerCardString} (${dealerValue})! You lost ${betAmount} moolah with ${userCardString} (${currentValue})`
-                                })
-                                await addBalance(interaction.user.id, -betAmount)
-                            } else {
-                                response.edit({
-                                    content: `Dealer loses with ${dealerCardString} (${dealerValue})! You won ${betAmount} moolah with ${userCardString} (${currentValue})`
-                                })
-                                await addBalance(interaction.user.id, betAmount)
-                            }
                         }
 
+                        await economy.addBalance(interaction.user.id, -betAmount, userInfo)
 
-                    } else if (interaction.customId === 'stand') {
+
+
+                    } else if (currentValue < 21) {
+
                         interaction.update({
-                            content: `You chose to stand on ${userCardString} (${currentValue}). The dealer will now play.`,
+                            content: `You've got ${userCardString} (${currentValue})\ntanyaBot: ${dealerCardString} (${dealerValue})`,
+                            components: [row],
+                        });
+
+
+                    } else if (currentValue === 21) {
+                        interaction.update({
+                            content: `You landed on 21 with ${userCardString}! Now the dealer will play.`,
                             components: [],
                         });
                         await wait(1500)
@@ -326,21 +253,67 @@ module.exports = {
                             response.edit({
                                 content: `Dealer wins with ${dealerCardString} (${dealerValue})! You lost ${betAmount} moolah with ${userCardString} (${currentValue})`
                             })
-                            await addBalance(interaction.user.id, -betAmount)
+                            await economy.addBalance(interaction.user.id, -betAmount, userInfo)
                         } else {
                             response.edit({
                                 content: `Dealer loses with ${dealerCardString} (${dealerValue})! You won ${betAmount} moolah with ${userCardString} (${currentValue})`
                             })
-                            await addBalance(interaction.user.id, betAmount)
+                            await economy.addBalance(interaction.user.id, betAmount, userInfo)
                         }
-
-
-
                     }
 
-                })
-            }
+
+                } else if (interaction.customId === 'stand') {
+                    interaction.update({
+                        content: `You chose to stand on ${userCardString} (${currentValue}). The dealer will now play.`,
+                        components: [],
+                    });
+                    await wait(1500)
+                    response.edit({
+                        content: `${interaction.user.username}: ${userCardString} (${currentValue})\ntanyaBot: ${dealerCardString} (${dealerValue})`,
+                    })
+                    await wait(1500)
+                    while (dealerValue < currentValue) {
+                        cardChosen = card(cards)
+                        if (cardChosen > 10) {
+                            dealerValue += 10
+                        } else {
+                            if ((dealerValue <= 10) && (cardChosen === 1)) {
+                                dealerValue += 11
+                            } else {
+                                dealerValue += cardChosen
+                            }
+                        }
+                        dealerCardString = dealerCardString + cardGiven(cardChosen)
+                        await wait(1000)
+                        response.edit({
+                            content: `${interaction.user.username}: ${userCardString} (${currentValue})\ntanyaBot: ${dealerCardString} (${dealerValue})`,
+                        })
+                    }
+                    await wait(2500)
+                    if (dealerValue === currentValue) {
+                        response.edit({
+                            content: `Draw!\n${interaction.user.username}: ${userCardString} (${currentValue})\ntanyaBot: ${dealerCardString} (${dealerValue})\nNo moolah lost or gained!`
+                        })
+                    } else if (dealerValue <= 21) {
+                        response.edit({
+                            content: `Dealer wins with ${dealerCardString} (${dealerValue})! You lost ${betAmount} moolah with ${userCardString} (${currentValue})`
+                        })
+                        await economy.addBalance(interaction.user.id, -betAmount, userInfo)
+                    } else {
+                        response.edit({
+                            content: `Dealer loses with ${dealerCardString} (${dealerValue})! You won ${betAmount} moolah with ${userCardString} (${currentValue})`
+                        })
+                        await economy.addBalance(interaction.user.id, betAmount, userInfo)
+                    }
 
 
+
+                }
+
+            })
         }
+
+
+    }
 }

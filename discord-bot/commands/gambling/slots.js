@@ -2,34 +2,8 @@ const { SlashCommandBuilder, Collection } = require('discord.js');
 const wait = require('node:timers/promises').setTimeout;
 const { Users } = require('../../dbObjects.js');
 const userInfo = new Collection()
+const economy = require('../../importantfunctions/economy.js')
 
-function getBalance(id) {
-    const user = userInfo.get(id);
-    return user ? user.balance : 0;
-}
-async function addBalance(id, amount) {
-    const user = userInfo.get(id);
-
-    if (user) {
-        user.balance += Number(amount);
-        return user.save();
-    }
-
-    const newUser = await Users.create({ user_id: id, balance: amount });
-    userInfo.set(id, newUser);
-
-    return newUser;
-}
-async function addExp(id, amount) {
-    const user = userInfo.get(id);
-    if (user) {
-        user.experience += Number(amount);
-        return user.save();
-    }
-    const newUser = await Users.create({ user_id: id, experience: amount });
-    userInfo.set(id, newUser);
-    return newUser;
-}
 function slot() {
     let randomNumber = Math.floor(Math.random() * 1000) + 1;
     if (randomNumber < 500) {
@@ -101,11 +75,11 @@ module.exports = {
     async execute(interaction) {
         const storedUserInfo = await Users.findAll();
         storedUserInfo.forEach(b => userInfo.set(b.user_id, b));
-        addExp(interaction.user.id, 5)
-        if (getBalance(interaction.user.id) < 5) {
+        economy.addExp(interaction.user.id, 5, userInfo)
+        if (economy.getBalance(interaction.user.id, userInfo) < 5) {
             interaction.reply("It costs 5 moolah to play, you don't have enough!")
         } else {
-            addBalance(interaction.user.id, -5)
+            economy.addBalance(interaction.user.id, -5, userInfo)
             const response = await interaction.reply({
                 content: `Spinning!`,
                 components: [],
@@ -121,7 +95,7 @@ module.exports = {
                 })
             }
             let amount = slotReturn(slots)
-            addBalance(interaction.user.id, amount)
+            economy.addBalance(interaction.user.id, amount, userInfo)
             response.edit(`Landed on ${slots[0]} ${slots[1]} ${slots[2]}!\nYou made ${amount} moolah!`)
         }
     }

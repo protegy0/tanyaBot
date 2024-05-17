@@ -2,30 +2,7 @@ const { SlashCommandBuilder, Collection } = require('discord.js');
 const { Users, CurrencyShop, FindDatabase, GemShop } = require('../../dbObjects.js');
 const {Op} = require("sequelize");
 const userInfo = new Collection()
-async function addExp(id, amount) {
-    const user = userInfo.get(id);
-    if (user) {
-        user.experience += Number(amount);
-        return user.save();
-    }
-    const newUser = await Users.create({ user_id: id, experience: amount });
-    userInfo.set(id, newUser);
-    return newUser;
-}
-
-async function addBalance(id, amount) {
-    const user = userInfo.get(id);
-
-    if (user) {
-        user.balance += Number(amount);
-        return user.save();
-    }
-
-    const newUser = await Users.create({ user_id: id, balance: amount });
-    userInfo.set(id, newUser);
-
-    return newUser;
-}
+const economy = require('../../importantfunctions/economy.js')
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -46,7 +23,7 @@ module.exports = {
         storedUserInfo.forEach(b => userInfo.set(b.user_id, b));
         let randomNumber = 0
         const userId = interaction.user.id
-        addExp(userId, 4)
+        economy.addExp(userId, 4, userInfo)
         const user = await Users.findOne({ where: { user_id: (userId) } });
         const items = await user.getItems();
         let amountDirtyBait = ""
@@ -112,42 +89,42 @@ module.exports = {
         if (enoughBait) {
             if (randomNumber < 600) {
                 interaction.reply('Congrats! You pulled out a 🥾, you got 1 moolah!')
-                addBalance(userId, 1)
+                economy.addBalance(userId, 1, userInfo)
                 const find = await FindDatabase.findOne({ where: { name: { [Op.like]: '🥾' } } });
                 await user.addFind(find)
             } else if ((randomNumber < 900) && (randomNumber > 500)) {
                 interaction.reply('Congrats! You pulled out a 🐟, you got 5 moolah!')
-                addBalance(userId, 5)
+                economy.addBalance(userId, 5, userInfo)
                 const find = await FindDatabase.findOne({ where: { name: { [Op.like]: '🐟' } } });
                 await user.addFind(find)
             } else if ((randomNumber < 940) && (randomNumber > 900)) {
                 interaction.reply('Congrats! You pulled out a 🐠, you got 15 moolah!')
-                addBalance(userId, 15)
+                economy.addBalance(userId, 15, userInfo)
                 const find = await FindDatabase.findOne({ where: { name: { [Op.like]: '🐠' } } });
                 await user.addFind(find)
             } else if ((randomNumber < 960) && (randomNumber > 940)) {
                 interaction.reply('Congrats, you pulled out a 🦈, you got 30 moolah!')
-                addBalance(userId, 30)
+                economy.addBalance(userId, 30, userInfo)
                 const find = await FindDatabase.findOne({ where: { name: { [Op.like]: '🦈' } } });
                 await user.addFind(find)
             } else if ((randomNumber < 980) && (randomNumber > 960)) {
                 interaction.reply('Congrats, you pulled out a 🐙, you got 75 moolah!')
-                addBalance(userId, 75)
+                economy.addBalance(userId, 75, userInfo)
                 const find = await FindDatabase.findOne({ where: { name: { [Op.like]: '🐙' } } });
                 await user.addFind(find)
             } else if ((randomNumber < 995) && (randomNumber > 980)) {
                 interaction.reply(`Congrats, you got a... WHAT??? How'd you manage to get a 👶?? Here's 300 moolah for finding a lost child.`)
-                addBalance(userId, 300)
+                economy.addBalance(userId, 300, userInfo)
                 const find = await FindDatabase.findOne({ where: { name: { [Op.like]: '👶 fished out of water' } } });
                 await user.addFind(find)
             } else if ((randomNumber < 999) && (randomNumber > 995)) {
                 interaction.reply(`You fished out an... entire... plane ✈️ ..? In perfect condition? Well.. here's 1500 moolah I guess..`)
-                addBalance(userId, 1500)
+                economy.addBalance(userId, 1500, userInfo)
                 const find = await FindDatabase.findOne({ where: { name: { [Op.like]: '✈️' } } });
                 await user.addFind(find)
             } else if (randomNumber === 1000) {
                 interaction.reply(`You managed to find one of the 🌠 shooting stars that fell in this river many years ago... somehow.. Have 5000 moolah!`)
-                addBalance(userId, 5000)
+                economy.addBalance(userId, 5000, userInfo)
                 const find = await FindDatabase.findOne({ where: { name: { [Op.like]: '🌠' } } });
                 await user.addFind(find)
             }

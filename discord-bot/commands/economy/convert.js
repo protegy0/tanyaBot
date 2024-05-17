@@ -1,37 +1,8 @@
 const { SlashCommandBuilder, Collection } = require('discord.js');
 const { Users } = require('../../dbObjects.js');
 const userInfo = new Collection()
-function getGems(id) {
-    const user = userInfo.get(id);
-    return user ? user.gems : 0;
-}
+const economy = require('../../importantfunctions/economy.js')
 
-async function addGems(id, amount) {
-    const user = userInfo.get(id);
-
-    if (user) {
-        user.gems += Number(amount);
-        return user.save();
-    }
-
-    const newUser = await Users.create({ user_id: id, gems: amount });
-    userInfo.set(id, newUser);
-
-    return newUser;
-}
-async function addBalance(id, amount) {
-    const user = userInfo.get(id);
-
-    if (user) {
-        user.balance += Number(amount);
-        return user.save();
-    }
-
-    const newUser = await Users.create({ user_id: id, balance: amount });
-    userInfo.set(id, newUser);
-
-    return newUser;
-}
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -48,9 +19,9 @@ module.exports = {
         storedUserInfo.forEach(b => userInfo.set(b.user_id, b));
         const userId = interaction.user.id;
         const amount = interaction.options.get('amount').value
-        if (getGems(userId) >= amount) {
-            addGems(userId, -amount);
-            addBalance(userId, (amount * 50));
+        if (economy.getGems(userId, userInfo) >= amount) {
+            economy.addGems(userId, -amount, userInfo);
+            economy.addBalance(userId, (amount * 50), userInfo);
             interaction.reply(`Converted ${amount} gems to ${amount * 25} moolah!`)
         } else {
             interaction.reply({
