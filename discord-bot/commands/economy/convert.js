@@ -1,6 +1,4 @@
-const { SlashCommandBuilder, Collection } = require('discord.js');
-const { Users } = require('../../dbObjects.js');
-const userInfo = new Collection()
+const { SlashCommandBuilder } = require('discord.js');
 const economy = require('../../importantfunctions/economy.js')
 
 
@@ -15,13 +13,11 @@ module.exports = {
                     .setRequired(true)
                     .setMinValue(1)),
     async execute(interaction) {
-        const storedUserInfo = await Users.findAll();
-        storedUserInfo.forEach(b => userInfo.set(b.user_id, b));
         const userId = interaction.user.id;
         const amount = interaction.options.get('amount').value
-        if (economy.getGems(userId, userInfo) >= amount) {
-            economy.addGems(userId, -amount, userInfo);
-            economy.addBalance(userId, (amount * 50), userInfo);
+        if (economy.getGems(userId) >= amount) {
+            economy.addGems(userId, -amount);
+            economy.addBalance(userId, (amount * 50));
             interaction.reply(`Converted ${amount} gems to ${amount * 25} moolah!`)
         } else {
             interaction.reply({

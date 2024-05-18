@@ -45,17 +45,19 @@ client.on(Events.InteractionCreate, async interaction => {
     const storedUserInfo = await Users.findAll();
     storedUserInfo.forEach(b => userInfo.set(b.user_id, b));
     storedUserInfo.forEach(b => addCache(b.user_id));
-    await economy.addBalance(interaction.user.id, 0, userInfo)
+    await economy.addBalance(interaction.user.id, 0)
+    const time = new Date().toLocaleString();
+    console.log(`${interaction.user.username} ran command ${interaction.commandName} in ${interaction.channel.name} on ${time}`)
 
     //Level calculation
-    let calculatedLevel = economy.calcLevel(economy.getExp(interaction.user.id, userInfo))
-    let storedLevel = economy.getLevel(interaction.user.id, userInfo)
+    let calculatedLevel = economy.calcLevel(economy.getExp(interaction.user.id))
+    let storedLevel = economy.getLevel(interaction.user.id)
     if (calculatedLevel > storedLevel) {
         let gemReward = calculatedLevel * 5
         const channel = interaction.channelId
         client.channels.cache.get(channel).send(`<@${interaction.user.id}> leveled up to level ${calculatedLevel}! You earned ${gemReward} gems!`)
-        await economy.addGems(interaction.user.id, gemReward, userInfo)
-        await economy.increaseLevel(interaction.user.id, userInfo)
+        await economy.addGems(interaction.user.id, gemReward)
+        await economy.increaseLevel(interaction.user.id)
     }
 
     if (!interaction.isChatInputCommand()) return;
@@ -82,22 +84,22 @@ client.on("messageCreate", async msg => {
     const storedUserInfo = await Users.findAll();
     storedUserInfo.forEach(b => userInfo.set(b.user_id, b));
     storedUserInfo.forEach(b => addCache(b.user_id));
-    await economy.addExp(msg.author.id, 1, userInfo)
+    await economy.addExp(msg.author.id, 1)
 
-    let calculatedLevel = economy.calcLevel(economy.getExp(msg.author.id, userInfo))
-    let storedLevel = economy.getLevel(msg.author.id, userInfo)
+    let calculatedLevel = economy.calcLevel(economy.getExp(msg.author.id))
+    let storedLevel = economy.getLevel(msg.author.id)
     if (calculatedLevel > storedLevel) {
         let gemReward = calculatedLevel * 5
         await msg.reply(`You leveled up to level ${calculatedLevel}! You earned ${gemReward} gems!`)
-        await economy.addGems(msg.author.id, gemReward, userInfo)
-        await economy.increaseLevel(msg.author.id, userInfo)
+        await economy.addGems(msg.author.id, gemReward)
+        await economy.increaseLevel(msg.author.id)
     }
 
 
     if (msg.content[0] === '-') {
         let messageArray = msg.content.split(" ");
         const command = messageArray[0].substring(1);
-        if (msg.author.id == "295074068581974026") {
+        if (msg.author.id.toString() === "295074068581974026") {
             switch (command) {
                 case "maltest":
                     malScraper.getResultsFromSearch(messageArray[1]).then(

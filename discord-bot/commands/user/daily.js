@@ -1,6 +1,4 @@
-const { SlashCommandBuilder, Collection } = require('discord.js');
-const { Users } = require('../../dbObjects.js');
-const userInfo = new Collection()
+const { SlashCommandBuilder } = require('discord.js');
 const economy = require('../../importantfunctions/economy.js')
 
 function msToTime(ms) {
@@ -19,13 +17,11 @@ module.exports = {
         .setName('daily')
         .setDescription('Claim your daily moolah!'),
     async execute(interaction) {
-        const storedUserInfo = await Users.findAll();
-        storedUserInfo.forEach(b => userInfo.set(b.user_id, b));
-        economy.addExp(interaction.user.id, 50, userInfo)
-        const userTime = economy.getDailyTimes(interaction.user.id, userInfo);
+        economy.addExp(interaction.user.id, 50)
+        const userTime = economy.getDailyTimes(interaction.user.id);
         if ((Date.now() - userTime) >= 86400000) {
-            economy.addBalance(interaction.user.id, 100, userInfo)
-            economy.setDailyTime(interaction.user.id, userInfo)
+            economy.addBalance(interaction.user.id, 100)
+            economy.setDailyTime(interaction.user.id)
             interaction.reply("You got 100 moolah!")
         } else {
             interaction.reply({

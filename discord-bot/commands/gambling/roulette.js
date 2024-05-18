@@ -1,7 +1,5 @@
-const { SlashCommandBuilder, Collection } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 const wait = require('node:timers/promises').setTimeout;
-const { Users } = require('../../dbObjects.js');
-const userInfo = new Collection()
 const economy = require('../../importantfunctions/economy.js')
 
 module.exports = {
@@ -18,10 +16,8 @@ module.exports = {
                 .setDescription("Black or red: 2x, Green: 10x")
                 .setRequired(true)),
     async execute(interaction) {
-        const storedUserInfo = await Users.findAll();
-        storedUserInfo.forEach(b => userInfo.set(b.user_id, b));
-        economy.addExp(interaction.user.id, 5, userInfo)
-        let userBalance = economy.getBalance(interaction.user.id, userInfo)
+        economy.addExp(interaction.user.id, 5)
+        let userBalance = economy.getBalance(interaction.user.id)
         let userOdds = interaction.options.get('odds').value
         let userBet = interaction.options.get('money-to-bet').value
         let randomNumber = 0;
@@ -69,18 +65,18 @@ module.exports = {
                         response.edit({
                             content: `Congrats! You won on ${userOdds.toLowerCase()}! You won ${userBet} moolah!`
                         })
-                        economy.addBalance(interaction.user.id, userBet, userInfo)
+                        economy.addBalance(interaction.user.id, userBet)
                     } else {
                         response.edit({
                             content: `Congrats! You won on ${userOdds.toLowerCase()}! You won ${userBet * 10} moolah!`
                         })
-                        economy.addBalance(interaction.user.id, userBet * 10, userInfo)
+                        economy.addBalance(interaction.user.id, userBet * 10)
                     }
                 } else {
                     response.edit({
                         content: `Sorry! It landed on ${color.toLowerCase()}, and you bet on ${userOdds.toLowerCase()}. You lost ${userBet} moolah!`
                     })
-                    economy.addBalance(interaction.user.id, -userBet, userInfo)
+                    economy.addBalance(interaction.user.id, -userBet)
                 }
             }
         }

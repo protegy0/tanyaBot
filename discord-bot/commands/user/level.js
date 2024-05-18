@@ -1,6 +1,4 @@
-const { SlashCommandBuilder, Collection} = require('discord.js');
-const { Users } = require('../../dbObjects')
-const userInfo = new Collection()
+const { SlashCommandBuilder} = require('discord.js');
 const economy = require('../../importantfunctions/economy.js')
 function calcLevel(experience) {
     let level = 1
@@ -16,11 +14,9 @@ module.exports = {
         .setName('level')
         .setDescription('Check your level'),
     async execute(interaction) {
-        const storedUserInfo = await Users.findAll();
-        storedUserInfo.forEach(b => userInfo.set(b.user_id, b));
-        let level = calcLevel(economy.getExp(interaction.user.id, userInfo))
+        let level = calcLevel(economy.getExp(interaction.user.id))
         let experienceTillNextLvl = Math.ceil((100 * (level))**1.1)
-        interaction.reply(`You are level ${level} with ${economy.getExp(interaction.user.id, userInfo)}/${experienceTillNextLvl} till the next level!`)
+        interaction.reply(`You are level ${level} with ${economy.getExp(interaction.user.id)}/${experienceTillNextLvl} till the next level!`)
 
     }
 }

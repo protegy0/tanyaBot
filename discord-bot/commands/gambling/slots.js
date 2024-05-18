@@ -1,7 +1,5 @@
-const { SlashCommandBuilder, Collection } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 const wait = require('node:timers/promises').setTimeout;
-const { Users } = require('../../dbObjects.js');
-const userInfo = new Collection()
 const economy = require('../../importantfunctions/economy.js')
 
 function slot() {
@@ -73,13 +71,11 @@ module.exports = {
         .setName('slots')
         .setDescription('Spend 5 moolah to get more moolah! (Hopefully)'),
     async execute(interaction) {
-        const storedUserInfo = await Users.findAll();
-        storedUserInfo.forEach(b => userInfo.set(b.user_id, b));
-        economy.addExp(interaction.user.id, 5, userInfo)
-        if (economy.getBalance(interaction.user.id, userInfo) < 5) {
+        economy.addExp(interaction.user.id, 5)
+        if (economy.getBalance(interaction.user.id) < 5) {
             interaction.reply("It costs 5 moolah to play, you don't have enough!")
         } else {
-            economy.addBalance(interaction.user.id, -5, userInfo)
+            economy.addBalance(interaction.user.id, -5)
             const response = await interaction.reply({
                 content: `Spinning!`,
                 components: [],
@@ -95,7 +91,7 @@ module.exports = {
                 })
             }
             let amount = slotReturn(slots)
-            economy.addBalance(interaction.user.id, amount, userInfo)
+            economy.addBalance(interaction.user.id, amount)
             response.edit(`Landed on ${slots[0]} ${slots[1]} ${slots[2]}!\nYou made ${amount} moolah!`)
         }
     }

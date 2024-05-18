@@ -1,6 +1,4 @@
-const { SlashCommandBuilder, Collection } = require('discord.js');
-const { Users } = require('../../dbObjects.js');
-const userInfo = new Collection()
+const { SlashCommandBuilder } = require('discord.js');
 const economy = require('../../importantfunctions/economy.js')
 
 
@@ -22,22 +20,20 @@ module.exports = {
 
 
     async execute(interaction) {
-        console.log(`${interaction.user.username} ran command ${interaction.commandName}.`)
-        const storedUserInfo = await Users.findAll();
-        storedUserInfo.forEach(b => userInfo.set(b.user_id, b));
+
 
         if (interaction.options.getSubcommand() === 'moolah') {
             if (!(interaction.options.get('user') === null)) {
-                interaction.reply(`<@${interaction.options.get('user').value}> has a balance of ${economy.getBalance(interaction.options.get('user').value, userInfo)}!`);
+                interaction.reply(`<@${interaction.options.get('user').value}> has a balance of ${economy.getBalance(interaction.options.get('user').value)}!`);
             } else {
-                let userBalance = economy.getBalance(interaction.user.id, userInfo);
+                let userBalance = economy.getBalance(interaction.user.id);
                 interaction.reply(`Your balance is ${userBalance} moolah!`)
             }
         } else {
             if (!(interaction.options.get('user') === null)) {
-                interaction.reply(`<@${interaction.options.get('user').value}> has ${economy.getGems(interaction.options.get('user').value, userInfo)} gems!`);
+                interaction.reply(`<@${interaction.options.get('user').value}> has ${economy.getGems(interaction.options.get('user').value)} gems!`);
             } else {
-                let userBalance = economy.getGems(interaction.user.id, userInfo);
+                let userBalance = economy.getGems(interaction.user.id);
                 interaction.reply(`You have ${userBalance} gems!`)
             }
         }

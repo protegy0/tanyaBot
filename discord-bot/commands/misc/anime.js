@@ -12,7 +12,6 @@ module.exports = {
                 .setDescription('The name of the anime')
                 .setRequired(true)),
     async execute(interaction) {
-        console.log(`${interaction.user.username} ran command ${interaction.commandName}.`)
         malScraper.getResultsFromSearch(interaction.options.get('anime').value).then(
             async (data) => {
                 let count = 1

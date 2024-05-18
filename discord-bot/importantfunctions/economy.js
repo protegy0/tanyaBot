@@ -1,6 +1,16 @@
 const {Users} = require("../dbObjects");
+const {Collection} = require("discord.js");
+const userInfo = new Collection();
+(async () => {
+    const storedUserInfo = await Users.findAll();
+    storedUserInfo.forEach(b => userInfo.set(b.user_id, b));
+})();
+
+
+
+
 const economy = {
-    addBalance: async function (id, amount, userInfo) {
+    addBalance: async function (id, amount) {
         const user = userInfo.get(id);
         if (user) {
             user.balance += Number(amount);
@@ -11,7 +21,7 @@ const economy = {
         return newUser;
     },
 
-    addExp: async function (id, amount, userInfo) {
+    addExp: async function (id, amount) {
         const user = userInfo.get(id);
         if (user) {
             user.experience += Number(amount);
@@ -22,7 +32,7 @@ const economy = {
         return newUser;
     },
 
-    addGems: async function (id, amount, userInfo) {
+    addGems: async function (id, amount) {
         const user = userInfo.get(id);
         if (user) {
             user.gems += Number(amount);
@@ -33,7 +43,7 @@ const economy = {
         return newUser;
     },
 
-    increaseLevel: async function (id, userInfo) {
+    increaseLevel: async function (id) {
         const user = userInfo.get(id);
         if (user) {
             user.level += 1;
@@ -52,22 +62,22 @@ const economy = {
         return level
     },
 
-    getExp: function (id, userInfo) {
+    getExp: function (id) {
         const user = userInfo.get(id);
         return user ? user.experience : 0;
     },
 
-    getLevel: function (id, userInfo) {
+    getLevel: function (id) {
         const user = userInfo.get(id);
         return user ? user.level : 1;
     },
 
-    getGems: function (id, userInfo) {
+    getGems: function (id) {
         const user = userInfo.get(id);
         return user ? user.gems : 1;
     },
 
-    getBalance: function (id, userInfo) {
+    getBalance: function (id) {
         const user = userInfo.get(id);
         return user ? user.balance : 0;
     },
@@ -81,12 +91,12 @@ const economy = {
         }
     },
 
-    getDailyTimes: function(id, userInfo) {
+    getDailyTimes: function(id) {
         const user = userInfo.get(id);
         return user ? user.time_since_daily : 0;
     },
 
-    setStealTime: async function(id, userInfo) {
+    setStealTime: async function(id) {
         const user = userInfo.get(id);
 
         if (user) {

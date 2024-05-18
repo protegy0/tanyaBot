@@ -1,7 +1,5 @@
 const Booru = require('booru');
-const { SlashCommandBuilder, Collection } = require('discord.js');
-const {Users} = require("../../dbObjects");
-const userInfo = new Collection()
+const { SlashCommandBuilder } = require('discord.js');
 const economy = require('../../importantfunctions/economy.js')
 
 module.exports = {
@@ -17,9 +15,7 @@ module.exports = {
                 .setName('quote')
                 .setDescription('Get a quote from Tanya')),
     async execute(interaction) {
-        const storedUserInfo = await Users.findAll();
-        storedUserInfo.forEach(b => userInfo.set(b.user_id, b));
-        economy.addExp(interaction.user.id, 15, userInfo)
+        economy.addExp(interaction.user.id, 15)
         if (interaction.options.getSubcommand() === 'picture') {
             Booru.search('safebooru', ['tanya_degurechaff'], {limit: 1, random: true}).then(
                 posts => {

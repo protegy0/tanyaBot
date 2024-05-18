@@ -10,7 +10,6 @@ module.exports = {
                 .setDescription('The name of the character')
                 .setRequired(true)),
     async execute(interaction) {
-        console.log(`${interaction.user.username} ran command ${interaction.commandName}.`)
         let query = interaction.options.get('character-name').value
         let queryArray = query.split(' ');
         let temp = queryArray[0]

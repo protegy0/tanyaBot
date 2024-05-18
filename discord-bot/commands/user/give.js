@@ -1,6 +1,4 @@
-const { SlashCommandBuilder, Collection } = require('discord.js');
-const { Users } = require('../../dbObjects.js');
-const userInfo = new Collection()
+const { SlashCommandBuilder } = require('discord.js');
 const economy = require('../../importantfunctions/economy.js')
 
 module.exports = {
@@ -32,18 +30,16 @@ module.exports = {
                         .setDescription('amount to give')
                         .setRequired(true))),
     async execute(interaction) {
-        const storedUserInfo = await Users.findAll();
-        storedUserInfo.forEach(b => userInfo.set(b.user_id, b));
 
         if (interaction.user.id === '295074068581974026') {
             if (interaction.options.getSubcommand() === 'moolah') {
-                economy.addBalance(interaction.options.get('user').value, interaction.options.get('amount').value, userInfo)
+                economy.addBalance(interaction.options.get('user').value, interaction.options.get('amount').value)
                 interaction.reply({
                     content: 'given',
                     ephemeral: true,
                 })
             } else {
-                economy.addGems(interaction.options.get('user').value, interaction.options.get('amount').value, userInfo)
+                economy.addGems(interaction.options.get('user').value, interaction.options.get('amount').value)
                 interaction.reply({
                     content: 'given',
                     ephemeral: true,
