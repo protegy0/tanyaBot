@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require('discord.js');
 const wait = require('node:timers/promises').setTimeout;
-const economy = require('../../importantfunctions/economy.js')
+const { balance, exp} = require('../../importantfunctions/mutators.js')
+
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -14,10 +15,15 @@ module.exports = {
         .addStringOption(option =>
             option.setName("odds")
                 .setDescription("Black or red: 2x, Green: 10x")
-                .setRequired(true)),
+                .setRequired(true)
+                .addChoices(
+                    { name: "Green", value: 'green'},
+                    { name: "Red", value: 'red'},
+                    { name: "Black", value: 'black'},
+                )),
     async execute(interaction) {
-        economy.addExp(interaction.user.id, 5)
-        let userBalance = economy.getBalance(interaction.user.id)
+        exp.addExp(interaction.user.id, 5)
+        let userBalance = balance.getBalance(interaction.user.id)
         let userOdds = interaction.options.get('odds').value
         let userBet = interaction.options.get('money-to-bet').value
         let randomNumber = 0;
@@ -65,18 +71,18 @@ module.exports = {
                         response.edit({
                             content: `Congrats! You won on ${userOdds.toLowerCase()}! You won ${userBet} moolah!`
                         })
-                        economy.addBalance(interaction.user.id, userBet)
+                        balance.addBalance(interaction.user.id, userBet)
                     } else {
                         response.edit({
                             content: `Congrats! You won on ${userOdds.toLowerCase()}! You won ${userBet * 10} moolah!`
                         })
-                        economy.addBalance(interaction.user.id, userBet * 10)
+                        balance.addBalance(interaction.user.id, userBet * 10)
                     }
                 } else {
                     response.edit({
                         content: `Sorry! It landed on ${color.toLowerCase()}, and you bet on ${userOdds.toLowerCase()}. You lost ${userBet} moolah!`
                     })
-                    economy.addBalance(interaction.user.id, -userBet)
+                    balance.addBalance(interaction.user.id, -userBet)
                 }
             }
         }

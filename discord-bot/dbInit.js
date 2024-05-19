@@ -19,11 +19,16 @@ const GemShop = require('./models/GemShop.js')(sequelize, Sequelize.DataTypes);
 require('./models/Users.js')(sequelize, Sequelize.DataTypes);
 require('./models/UserItems.js')(sequelize, Sequelize.DataTypes);
 
+const CharacterDatabase = require('./models/CharacterDatabase.js')(sequelize, Sequelize.DataTypes);
+require('./models/Users.js')(sequelize, Sequelize.DataTypes);
+require('./models/UserCharacters.js')(sequelize, Sequelize.DataTypes);
+
 
 
 const force = process.argv.includes('--force') || process.argv.includes('-f');
+const alter = process.argv.includes('--alter') || process.argv.includes('-a');
 
-sequelize.sync({ force }).then(async () => {
+sequelize.sync({ force, alter }).then(async () => {
     const shop = [
         CurrencyShop.upsert({name: 'Dirty Bait', cost: 7, id: 1 }),
         CurrencyShop.upsert({name: 'Clean Bait', cost: 12, id: 2}),
@@ -57,9 +62,14 @@ sequelize.sync({ force }).then(async () => {
         GemShop.upsert({name: 'Mystical Bait', cost: 15, id: 7 }),
     ];
 
+    const characterList = [
+        CharacterDatabase.upsert({name: 'Tanya von Degurechaff', image_id: 'https://i.imgur.com/A4Iz8yd.jpeg', id: 101 }),
+    ];
+
     await Promise.all(shop);
     await Promise.all(finds);
     await Promise.all(gemShop);
+    await Promise.all(characterList);
     console.log('Database synced');
 
     sequelize.close()

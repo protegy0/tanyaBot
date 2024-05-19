@@ -9,7 +9,7 @@ const userInfo = new Collection();
 
 
 
-const economy = {
+const balance = {
     addBalance: async function (id, amount) {
         const user = userInfo.get(id);
         if (user) {
@@ -20,7 +20,13 @@ const economy = {
         userInfo.set(id, newUser);
         return newUser;
     },
+    getBalance: function (id) {
+        const user = userInfo.get(id);
+        return user ? user.balance : 0;
+    },
+}
 
+const exp = {
     addExp: async function (id, amount) {
         const user = userInfo.get(id);
         if (user) {
@@ -31,7 +37,13 @@ const economy = {
         userInfo.set(id, newUser);
         return newUser;
     },
+    getExp: function (id) {
+        const user = userInfo.get(id);
+        return user ? user.experience : 0;
+    },
+}
 
+const gems = {
     addGems: async function (id, amount) {
         const user = userInfo.get(id);
         if (user) {
@@ -42,7 +54,13 @@ const economy = {
         userInfo.set(id, newUser);
         return newUser;
     },
+    getGems: function (id) {
+        const user = userInfo.get(id);
+        return user ? user.gems : 1;
+    },
+}
 
+const level= {
     increaseLevel: async function (id) {
         const user = userInfo.get(id);
         if (user) {
@@ -62,26 +80,15 @@ const economy = {
         return level
     },
 
-    getExp: function (id) {
-        const user = userInfo.get(id);
-        return user ? user.experience : 0;
-    },
+
 
     getLevel: function (id) {
         const user = userInfo.get(id);
         return user ? user.level : 1;
     },
+}
 
-    getGems: function (id) {
-        const user = userInfo.get(id);
-        return user ? user.gems : 1;
-    },
-
-    getBalance: function (id) {
-        const user = userInfo.get(id);
-        return user ? user.balance : 0;
-    },
-
+const dailyTime = {
     setDailyTime: async function (id) {
         const user = userInfo.get(id);
 
@@ -95,7 +102,9 @@ const economy = {
         const user = userInfo.get(id);
         return user ? user.time_since_daily : 0;
     },
+}
 
+const stealTime = {
     setStealTime: async function(id) {
         const user = userInfo.get(id);
 
@@ -108,8 +117,10 @@ const economy = {
     getStealTimes: function(id) {
         const user = userInfo.get(id);
         return user ? user.time_since_steal : 0;
-    }
-
+    },
 }
 
-module.exports = economy;
+
+
+
+module.exports = { balance, exp, gems, dailyTime, stealTime, level };

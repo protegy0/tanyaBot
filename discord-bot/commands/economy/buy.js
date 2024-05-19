@@ -1,7 +1,7 @@
 const { SlashCommandBuilder } = require("discord.js");
 const { Users, CurrencyShop, GemShop } = require("../../dbObjects");
 const { Op } = require('sequelize')
-const economy = require('../../importantfunctions/economy.js')
+const { balance, gems} = require('../../importantfunctions/mutators.js')
 
 
 module.exports = {
@@ -43,11 +43,11 @@ module.exports = {
             const item = await CurrencyShop.findOne({ where: { name: { [Op.like]: itemName } } });
             if (!item) {
                 interaction.reply('That item does not exist');
-            } else if ((item.cost) * amount > economy.getBalance(interaction.user.id)) {
-                interaction.reply(`You currently have ${economy.getBalance(interaction.user.id)} moolah, but ${amount} ${item.name}(s) costs ${item.cost * amount}!`);
+            } else if ((item.cost) * amount > balance.getBalance(interaction.user.id)) {
+                interaction.reply(`You currently have ${balance.getBalance(interaction.user.id)} moolah, but ${amount} ${item.name}(s) costs ${item.cost * amount}!`);
             } else {
                 const user = await Users.findOne({ where: { user_id: interaction.user.id } });
-                economy.addBalance(interaction.user.id, ((-item.cost) * amount));
+                balance.addBalance(interaction.user.id, ((-item.cost) * amount));
                 for (let i = 0; i < amount; i++) {
                     await user.addItem(item)
                 }
@@ -60,11 +60,11 @@ module.exports = {
             const item = await GemShop.findOne({ where: { name: { [Op.like]: itemName } } });
             if (!item) {
                 interaction.reply('That item does not exist');
-            } else if ((item.cost) * amount > economy.getGems(interaction.user.id)) {
-                interaction.reply(`You currently have ${economy.getGems(interaction.user.id)} gems, but ${amount} ${item.name}(s) costs ${item.cost * amount}!`);
+            } else if ((item.cost) * amount > gems.getGems(interaction.user.id)) {
+                interaction.reply(`You currently have ${gems.getGems(interaction.user.id)} gems, but ${amount} ${item.name}(s) costs ${item.cost * amount}!`);
             } else {
                 const user = await Users.findOne({ where: { user_id: interaction.user.id } });
-                economy.addGems(interaction.user.id, ((-item.cost) * amount));
+                gems.addGems(interaction.user.id, ((-item.cost) * amount));
                 for (let i = 0; i < amount; i++) {
                     await user.addItem(item)
                 }

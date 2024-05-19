@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const economy = require('../../importantfunctions/economy.js')
+const { balance, gems  } = require('../../importantfunctions/mutators.js')
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -33,13 +33,13 @@ module.exports = {
 
         if (interaction.user.id === '295074068581974026') {
             if (interaction.options.getSubcommand() === 'moolah') {
-                economy.addBalance(interaction.options.get('user').value, interaction.options.get('amount').value)
+                balance.addBalance(interaction.options.get('user').value, interaction.options.get('amount').value)
                 interaction.reply({
                     content: 'given',
                     ephemeral: true,
                 })
             } else {
-                economy.addGems(interaction.options.get('user').value, interaction.options.get('amount').value)
+                gems.addGems(interaction.options.get('user').value, interaction.options.get('amount').value)
                 interaction.reply({
                     content: 'given',
                     ephemeral: true,

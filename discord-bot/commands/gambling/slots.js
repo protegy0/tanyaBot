@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('discord.js');
 const wait = require('node:timers/promises').setTimeout;
-const economy = require('../../importantfunctions/economy.js')
+const { balance, exp} = require('../../importantfunctions/mutators.js')
 
 function slot() {
     let randomNumber = Math.floor(Math.random() * 1000) + 1;
@@ -71,11 +71,11 @@ module.exports = {
         .setName('slots')
         .setDescription('Spend 5 moolah to get more moolah! (Hopefully)'),
     async execute(interaction) {
-        economy.addExp(interaction.user.id, 5)
-        if (economy.getBalance(interaction.user.id) < 5) {
+        exp.addExp(interaction.user.id, 5)
+        if (balance.getBalance(interaction.user.id) < 5) {
             interaction.reply("It costs 5 moolah to play, you don't have enough!")
         } else {
-            economy.addBalance(interaction.user.id, -5)
+            balance.addBalance(interaction.user.id, -5)
             const response = await interaction.reply({
                 content: `Spinning!`,
                 components: [],
@@ -91,7 +91,7 @@ module.exports = {
                 })
             }
             let amount = slotReturn(slots)
-            economy.addBalance(interaction.user.id, amount)
+            balance.addBalance(interaction.user.id, amount)
             response.edit(`Landed on ${slots[0]} ${slots[1]} ${slots[2]}!\nYou made ${amount} moolah!`)
         }
     }

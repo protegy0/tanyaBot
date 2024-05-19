@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const economy = require('../../importantfunctions/economy.js')
+const { balance, gems} = require('../../importantfunctions/mutators.js')
 
 
 module.exports = {
@@ -15,9 +15,9 @@ module.exports = {
     async execute(interaction) {
         const userId = interaction.user.id;
         const amount = interaction.options.get('amount').value
-        if (economy.getGems(userId) >= amount) {
-            economy.addGems(userId, -amount);
-            economy.addBalance(userId, (amount * 50));
+        if (gems.getGems(userId) >= amount) {
+            gems.addGems(userId, -amount);
+            balance.addBalance(userId, (amount * 25));
             interaction.reply(`Converted ${amount} gems to ${amount * 25} moolah!`)
         } else {
             interaction.reply({

@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const economy = require('../../importantfunctions/economy.js');
+const { balance } = require('../../importantfunctions/mutators.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -17,15 +17,15 @@ module.exports = {
                     .setRequired(true)
                     .setMinValue(1)),
     async execute(interaction) {
-        let userBalance = economy.getBalance(interaction.user.id)
+        let userBalance = balance.getBalance(interaction.user.id)
         let userId = interaction.user.id
         let transferId = interaction.options.get('person1').value
         let transferAmount = interaction.options.get('transfer-amount').value
         if (transferAmount > userBalance) {
             interaction.reply('You do not have enough moolah to make this transfer!')
         } else {
-            economy.addBalance(userId, -transferAmount)
-            economy.addBalance(transferId, transferAmount)
+            balance.addBalance(userId, -transferAmount)
+            balance.addBalance(transferId, transferAmount)
             interaction.reply(`${transferAmount} moolah has been transferred from <@${userId}> to <@${transferId}>!`)
         }
     }

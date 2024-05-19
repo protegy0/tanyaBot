@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const economy = require('../../importantfunctions/economy.js')
+const { balance, gems } = require('../../importantfunctions/mutators.js')
 
 
 
@@ -24,16 +24,16 @@ module.exports = {
 
         if (interaction.options.getSubcommand() === 'moolah') {
             if (!(interaction.options.get('user') === null)) {
-                interaction.reply(`<@${interaction.options.get('user').value}> has a balance of ${economy.getBalance(interaction.options.get('user').value)}!`);
+                interaction.reply(`<@${interaction.options.get('user').value}> has a balance of ${balance.getBalance(interaction.options.get('user').value)}!`);
             } else {
-                let userBalance = economy.getBalance(interaction.user.id);
+                let userBalance = balance.getBalance(interaction.user.id);
                 interaction.reply(`Your balance is ${userBalance} moolah!`)
             }
         } else {
             if (!(interaction.options.get('user') === null)) {
-                interaction.reply(`<@${interaction.options.get('user').value}> has ${economy.getGems(interaction.options.get('user').value)} gems!`);
+                interaction.reply(`<@${interaction.options.get('user').value}> has ${gems.getGems(interaction.options.get('user').value)} gems!`);
             } else {
-                let userBalance = economy.getGems(interaction.user.id);
+                let userBalance = gems.getGems(interaction.user.id);
                 interaction.reply(`You have ${userBalance} gems!`)
             }
         }

@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const economy = require('../../importantfunctions/economy.js')
+const { balance, stealTime, exp} = require('../../importantfunctions/mutators.js')
 
 function msToTime(ms) {
     let seconds = (ms / 1000).toFixed(1);
@@ -21,21 +21,21 @@ module.exports = {
                 .setDescription('Person to steal from')
                 .setRequired(true)),
     async execute(interaction) {
-        const userTime = economy.getStealTimes(interaction.user.id);
-        const victimBalance = economy.getBalance(interaction.options.get('person').value)
+        const userTime = stealTime.getStealTimes(interaction.user.id);
+        const victimBalance = balance.getBalance(interaction.options.get('person').value)
         const stealAmount = Math.floor(Math.random() * (victimBalance/4 + 1))
-        const retributionAmount = Math.floor(Math.random() * ((economy.getBalance(interaction.user.id)/7) + 1))
+        const retributionAmount = Math.floor(Math.random() * ((balance.getBalance(interaction.user.id)/7) + 1))
         const randomNumber = Math.random()
-        economy.addExp(interaction.user.id, 50)
+        exp.addExp(interaction.user.id, 50)
         if ((Date.now() - userTime) >= 86400000) {
             if (randomNumber > 0.85) {
-                economy.addBalance(interaction.user.id, stealAmount)
-                economy.addBalance(interaction.options.get('person').value, -stealAmount)
+                balance.addBalance(interaction.user.id, stealAmount)
+                balance.addBalance(interaction.options.get('person').value, -stealAmount)
                 interaction.reply(`You managed to steal ${stealAmount} moolah from <@${interaction.options.get('person').value}>! Sucks to be them...`)
             } else {
                 interaction.reply(`<@${interaction.options.get('person').value}> caught you in the act and beat ${retributionAmount} moolah out of you!`)
             }
-            economy.setStealTime(interaction.user.id)
+            stealTime.setStealTime(interaction.user.id)
         } else {
             interaction.reply({
                 content:`You've already attempted to steal! Come back in ${msToTime(86400000 - (Date.now() - userTime))}`,

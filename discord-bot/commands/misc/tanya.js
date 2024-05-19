@@ -1,6 +1,6 @@
 const Booru = require('booru');
 const { SlashCommandBuilder } = require('discord.js');
-const economy = require('../../importantfunctions/economy.js')
+const { exp } = require('../../importantfunctions/mutators.js')
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -15,7 +15,7 @@ module.exports = {
                 .setName('quote')
                 .setDescription('Get a quote from Tanya')),
     async execute(interaction) {
-        economy.addExp(interaction.user.id, 15)
+        exp.addExp(interaction.user.id, 15)
         if (interaction.options.getSubcommand() === 'picture') {
             Booru.search('safebooru', ['tanya_degurechaff'], {limit: 1, random: true}).then(
                 posts => {

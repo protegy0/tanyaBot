@@ -1,6 +1,6 @@
 const {  ActionRowBuilder, SlashCommandBuilder, ButtonBuilder, ButtonStyle, ComponentType } = require('discord.js');
 const wait = require('node:timers/promises').setTimeout;
-const economy = require('../../importantfunctions/economy.js')
+const { balance, exp } = require('../../importantfunctions/mutators.js')
 
 
 
@@ -62,13 +62,6 @@ function cardGiven(num) {
     }
 }
 
-
-
-
-
-
-
-
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('blackjack')
@@ -81,9 +74,9 @@ module.exports = {
     async execute(interaction) {
         let cards = [1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10, 11, 11, 11, 11, 12, 12, 12, 12]
         const collectorFilter = i => i.user.id === interaction.user.id;
-        let userBalance = economy.getBalance(interaction.user.id)
+        let userBalance = balance.getBalance(interaction.user.id)
         let betAmount = interaction.options.get('money-to-bet').value;
-        economy.addExp(interaction.user.id, 5)
+        exp.addExp(interaction.user.id, 5)
         let currentValue = 0
         let dealerValue = 0
         let userCardString = ''
@@ -193,7 +186,7 @@ module.exports = {
                                 content: `You went past 21 with ${userCardString} (${currentValue}). You lost ${betAmount} moolah!`,
                                 components: [],
                             });
-                            await economy.addBalance(interaction.user.id, -betAmount)
+                            await balance.addBalance(interaction.user.id, -betAmount)
                         } else {
                             interaction.update({
                                 content: `You've got ${userCardString} (${currentValue})\ntanyaBot: ${dealerCardString} (${dealerValue})`,
@@ -249,12 +242,12 @@ module.exports = {
                             response.edit({
                                 content: `Dealer wins with ${dealerCardString} (${dealerValue})! You lost ${betAmount} moolah with ${userCardString} (${currentValue})`
                             })
-                            await economy.addBalance(interaction.user.id, -betAmount)
+                            await balance.addBalance(interaction.user.id, -betAmount)
                         } else {
                             response.edit({
                                 content: `Dealer loses with ${dealerCardString} (${dealerValue})! You won ${betAmount} moolah with ${userCardString} (${currentValue})`
                             })
-                            await economy.addBalance(interaction.user.id, betAmount)
+                            await balance.addBalance(interaction.user.id, betAmount)
                         }
                     }
 
@@ -295,12 +288,12 @@ module.exports = {
                         response.edit({
                             content: `Dealer wins with ${dealerCardString} (${dealerValue})! You lost ${betAmount} moolah with ${userCardString} (${currentValue})`
                         })
-                        await economy.addBalance(interaction.user.id, -betAmount)
+                        await balance.addBalance(interaction.user.id, -betAmount)
                     } else {
                         response.edit({
                             content: `Dealer loses with ${dealerCardString} (${dealerValue})! You won ${betAmount} moolah with ${userCardString} (${currentValue})`
                         })
-                        await economy.addBalance(interaction.user.id, betAmount)
+                        await balance.addBalance(interaction.user.id, betAmount)
                     }
 
 

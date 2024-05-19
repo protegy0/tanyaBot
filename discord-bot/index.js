@@ -3,9 +3,9 @@ const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
 const { Users } = require('./dbObjects.js');
 const { token } = require('./config.json');
-const malScraper = require("mal-scraper");
-const economy = require('./importantfunctions/economy.js')
+const { balance, level, exp, gems} = require('./importantfunctions/mutators.js')
 const userInfo = new Collection();
+const { EmbedBuilder } = require('discord.js');
 const client = new Client({ intents: [
                                                             GatewayIntentBits.Guilds,
                                                             GatewayIntentBits.GuildMessages,
@@ -14,6 +14,8 @@ const client = new Client({ intents: [
                                                             GatewayIntentBits.GuildMessageReactions,
                                                             ] });
 client.commands = new Collection();
+
+//Find command specified and run it
 const foldersPath = path.join(__dirname, 'commands');
 const commandFolders = fs.readdirSync(foldersPath);
 for (const folder of commandFolders) {
@@ -45,19 +47,19 @@ client.on(Events.InteractionCreate, async interaction => {
     const storedUserInfo = await Users.findAll();
     storedUserInfo.forEach(b => userInfo.set(b.user_id, b));
     storedUserInfo.forEach(b => addCache(b.user_id));
-    await economy.addBalance(interaction.user.id, 0)
+    await balance.addBalance(interaction.user.id, 0)
     const time = new Date().toLocaleString();
     console.log(`${interaction.user.username} ran command ${interaction.commandName} in ${interaction.channel.name} on ${time}`)
 
     //Level calculation
-    let calculatedLevel = economy.calcLevel(economy.getExp(interaction.user.id))
-    let storedLevel = economy.getLevel(interaction.user.id)
+    let calculatedLevel = level.calcLevel(exp.getExp(interaction.user.id))
+    let storedLevel = level.getLevel(interaction.user.id)
     if (calculatedLevel > storedLevel) {
         let gemReward = calculatedLevel * 5
         const channel = interaction.channelId
         client.channels.cache.get(channel).send(`<@${interaction.user.id}> leveled up to level ${calculatedLevel}! You earned ${gemReward} gems!`)
-        await economy.addGems(interaction.user.id, gemReward)
-        await economy.increaseLevel(interaction.user.id)
+        await gems.addGems(interaction.user.id, gemReward)
+        await level.increaseLevel(interaction.user.id)
     }
 
     if (!interaction.isChatInputCommand()) return;
@@ -79,20 +81,43 @@ client.on(Events.InteractionCreate, async interaction => {
 });
 
 
+
+
+
+
+const exampleEmbed = new EmbedBuilder()
+    .setColor(0x0099FF)
+    .setTitle('Some title')
+    .setURL('https://discord.js.org/')
+    .setAuthor({ name: 'Some name', iconURL: 'https://i.imgur.com/AfFp7pu.png', url: 'https://discord.js.org' })
+    .setDescription('Some description here')
+    .setThumbnail('https://i.imgur.com/AfFp7pu.png')
+    .addFields(
+        { name: 'Regular field title', value: 'Some value here' },
+        { name: '\u200B', value: '\u200B' },
+        { name: 'Inline field title', value: 'Some value here', inline: true },
+        { name: 'Inline field title', value: 'Some value here', inline: true },
+    )
+    .addFields({ name: 'Inline field title', value: 'Some value here', inline: true })
+    .setImage('https://i.imgur.com/AfFp7pu.png')
+    .setTimestamp()
+    .setFooter({ text: 'Some footer text here', iconURL: 'https://i.imgur.com/AfFp7pu.png' });
+
+
 client.on("messageCreate", async msg => {
     if (msg.author.bot) return;
     const storedUserInfo = await Users.findAll();
     storedUserInfo.forEach(b => userInfo.set(b.user_id, b));
     storedUserInfo.forEach(b => addCache(b.user_id));
-    await economy.addExp(msg.author.id, 1)
+    await exp.addExp(msg.author.id, 1)
 
-    let calculatedLevel = economy.calcLevel(economy.getExp(msg.author.id))
-    let storedLevel = economy.getLevel(msg.author.id)
+    let calculatedLevel = level.calcLevel(exp.getExp(msg.author.id))
+    let storedLevel = level.getLevel(msg.author.id)
     if (calculatedLevel > storedLevel) {
         let gemReward = calculatedLevel * 5
         await msg.reply(`You leveled up to level ${calculatedLevel}! You earned ${gemReward} gems!`)
-        await economy.addGems(msg.author.id, gemReward)
-        await economy.increaseLevel(msg.author.id)
+        await gems.addGems(msg.author.id, gemReward)
+        await level.increaseLevel(msg.author.id)
     }
 
 
@@ -101,19 +126,10 @@ client.on("messageCreate", async msg => {
         const command = messageArray[0].substring(1);
         if (msg.author.id.toString() === "295074068581974026") {
             switch (command) {
-                case "maltest":
-                    malScraper.getResultsFromSearch(messageArray[1]).then(
-                        (data) => {for (let i of data) {
-                            console.log(i.name)
-                        }}
-                    )
+                case "test":
+                    msg.reply({embeds: [exampleEmbed]})
                     break;
-        }
-
-
-
-
-
+            }
         }
     }
 });
