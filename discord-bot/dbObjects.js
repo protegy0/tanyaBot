@@ -69,16 +69,19 @@ Reflect.defineProperty(Users.prototype, 'removeItem', {
 });
 
 Reflect.defineProperty(Users.prototype, 'removeCharacter', {
+
     value: async function removeCharacter(character) {
         const userCharacter = await UserCharacters.findOne({
             where: { user_id: this.user_id, character_id: character.id },
         });
-        if (!userCharacter) {
+        if (!userCharacter || (userCharacter.amount === 0)) {
             return -1
         } else {
-            userCharacter.destroy()
-            return userCharacter.save();
+            userCharacter.amount -= 1;
+            return userCharacter.save()
         }
+
+
     },
 });
 
@@ -89,10 +92,11 @@ Reflect.defineProperty(Users.prototype, 'addCharacter', {
         });
 
         if (userCharacter) {
-            return -1
+            userCharacter.amount += 1;
+            return userCharacter.save();
         }
 
-        return UserCharacters.create({ user_id: this.user_id, character_id: character.id });
+        return UserCharacters.create({ user_id: this.user_id, character_id: character.id, amount: 1 });
     },
 });
 
@@ -109,6 +113,14 @@ Reflect.defineProperty(Users.prototype, 'getFinds', {
         return UserFinds.findAll({
             where: { user_id: this.user_id },
             include: ['find'],
+        });
+    },
+});
+Reflect.defineProperty(Users.prototype, 'getCharacters', {
+    value: function getCharacters() {
+        return UserCharacters.findAll({
+            where: { user_id: this.user_id },
+            include: ['character'],
         });
     },
 });

@@ -19,9 +19,6 @@ const GemShop = require('./models/GemShop.js')(sequelize, Sequelize.DataTypes);
 require('./models/Users.js')(sequelize, Sequelize.DataTypes);
 require('./models/UserItems.js')(sequelize, Sequelize.DataTypes);
 
-const CharacterDatabase = require('./models/CharacterDatabase.js')(sequelize, Sequelize.DataTypes);
-require('./models/Users.js')(sequelize, Sequelize.DataTypes);
-require('./models/UserCharacters.js')(sequelize, Sequelize.DataTypes);
 
 
 
@@ -62,14 +59,11 @@ sequelize.sync({ force, alter }).then(async () => {
         GemShop.upsert({name: 'Mystical Bait', cost: 15, id: 7 }),
     ];
 
-    const characterList = [
-        CharacterDatabase.upsert({name: 'Tanya von Degurechaff', image_id: 'https://i.imgur.com/A4Iz8yd.jpeg', id: 101 }),
-    ];
+
 
     await Promise.all(shop);
     await Promise.all(finds);
     await Promise.all(gemShop);
-    await Promise.all(characterList);
     console.log('Database synced');
 
     sequelize.close()

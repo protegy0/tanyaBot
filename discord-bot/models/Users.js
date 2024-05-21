@@ -33,7 +33,12 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             defaultValue: 1,
             allowNull: false
-        }
+        },
+        time_since_invite: {
+            type: DataTypes.INTEGER,
+            defaultValue: 0,
+            allowNull: false,
+        },
 
     }, {
         timestamps: false,

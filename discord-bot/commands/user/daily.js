@@ -18,7 +18,7 @@ module.exports = {
         .setDescription('Claim your daily moolah!'),
     async execute(interaction) {
         exp.addExp(interaction.user.id, 50)
-        const userTime = economy.getDailyTimes(interaction.user.id);
+        const userTime = dailyTime.getDailyTimes(interaction.user.id);
         if ((Date.now() - userTime) >= 86400000) {
             balance.addBalance(interaction.user.id, 100)
             dailyTime.setDailyTime(interaction.user.id)

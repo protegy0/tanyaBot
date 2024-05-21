@@ -120,7 +120,31 @@ const stealTime = {
     },
 }
 
+const inviteTime = {
+    setInviteTime: async function(id) {
+        const user = userInfo.get(id);
+
+        if (user) {
+            user.time_since_invite = Date.now()
+            return user.save();
+        }
+    },
+
+    getInviteTimes: function(id) {
+        const user = userInfo.get(id);
+        return user ? user.time_since_invite : 0;
+    },
+
+    giveInvite: async function(id) {
+        const user = userInfo.get(id);
+        if (user) {
+            user.time_since_invite = 0
+            return user.save()
+        }
+    }
+}
 
 
 
-module.exports = { balance, exp, gems, dailyTime, stealTime, level };
+
+module.exports = { balance, exp, gems, dailyTime, stealTime, level, inviteTime };

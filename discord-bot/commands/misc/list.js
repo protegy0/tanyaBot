@@ -1,5 +1,5 @@
-const { SlashCommandBuilder, codeBlock} = require("discord.js");
-const { CharacterDatabase } = require("../../dbObjects");
+const { SlashCommandBuilder,  } = require("discord.js");
+const { CharacterDatabase,  } = require("../../dbObjects");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -7,6 +7,11 @@ module.exports = {
         .setDescription("List characters"),
     async execute(interaction) {
         const characters = await CharacterDatabase.findAll();
-        interaction.reply(codeBlock(characters.map(c => `${c.name}\n${c.image_id}`).join('\n')));
+        const response = await interaction.reply({content:'yes', fetchReply: true,})
+        for (let character of characters) {
+            response.reply(`${character.name}\n${character.id}\n${character.image_id}\n${character.owner}`)
+
+        }
+
     }
 }
