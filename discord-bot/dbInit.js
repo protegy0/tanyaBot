@@ -19,6 +19,9 @@ const GemShop = require('./models/GemShop.js')(sequelize, Sequelize.DataTypes);
 require('./models/Users.js')(sequelize, Sequelize.DataTypes);
 require('./models/UserItems.js')(sequelize, Sequelize.DataTypes);
 
+const CharacterDatabase = require('./models/CharacterDatabase.js')(sequelize, Sequelize.DataTypes);
+require('./models/Users.js')(sequelize, Sequelize.DataTypes);
+require('./models/UserCharacters.js')(sequelize, Sequelize.DataTypes);
 
 
 
@@ -30,6 +33,9 @@ sequelize.sync({ force, alter }).then(async () => {
         CurrencyShop.upsert({name: 'Dirty Bait', cost: 7, id: 1 }),
         CurrencyShop.upsert({name: 'Clean Bait', cost: 12, id: 2}),
         CurrencyShop.upsert({name: 'Great Bait', cost: 18, id: 3 }),
+        CurrencyShop.upsert({name: 'Chocolate', cost: 150, id: 7 }),
+        CurrencyShop.upsert({name: 'Shiny Gift 🎁', cost: 300, id: 8 }),
+        CurrencyShop.upsert({name: 'Pretty Phone 📱', cost: 600, id: 9 }),
         CurrencyShop.upsert({name: 'Custom Role Color', cost: 500_000, id: 4 }),
         CurrencyShop.upsert({name: 'Protegy Voice Memo', cost: 3_000_000, id: 5 }),
         CurrencyShop.upsert({name: 'Ernie Voice Memo', cost: 10_000_000, id: 6 }),
@@ -56,14 +62,17 @@ sequelize.sync({ force, alter }).then(async () => {
 
     ];
     const gemShop = [
-        GemShop.upsert({name: 'Mystical Bait', cost: 15, id: 7 }),
+        GemShop.upsert({name: 'Lovely Gift 💝', cost: 30, id: 51 }),
     ];
 
+    const characterList = [
 
+    ];
 
     await Promise.all(shop);
     await Promise.all(finds);
     await Promise.all(gemShop);
+    await Promise.all(characterList);
     console.log('Database synced');
 
     sequelize.close()

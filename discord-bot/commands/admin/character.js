@@ -47,6 +47,11 @@ module.exports = {
                     option
                         .setName('owner')
                         .setDescription('Set new owner')
+                        .setRequired(true))
+                .addStringOption(option =>
+                    option
+                        .setName('points')
+                        .setDescription('points to give')
                         .setRequired(true)))
             .addSubcommand(subcommand =>
                 subcommand
@@ -79,7 +84,8 @@ module.exports = {
                 const updatedChar = await CharacterDatabase.update({
                     name: interaction.options.get('newname').value,
                     image_id: interaction.options.get('newimageurl').value,
-                    owner: interaction.options.get('owner').value, }, {
+                    owner: interaction.options.get('owner').value,
+                    statpoints: interaction.options.get('points').value }, {
                     where: {id: interaction.options.get('id').value},
                 })
                 if (updatedChar > 0) {
