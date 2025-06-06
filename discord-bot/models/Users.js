@@ -54,6 +54,21 @@ module.exports = (sequelize, DataTypes) => {
             defaultValue: 'unemployed',
             allowNull: false,
         },
+        battles_won: {
+            type: DataTypes.INTEGER,
+            defaultValue: 0,
+            allowNull: false,
+        },
+        battles_lost: {
+            type: DataTypes.INTEGER,
+            defaultValue: 0,
+            allowNull: false,
+        },
+        time_since_battle: {
+            type: DataTypes.INTEGER,
+            defaultValue: 0,
+            allowNull: false,
+        },
 
     }, {
         timestamps: false,

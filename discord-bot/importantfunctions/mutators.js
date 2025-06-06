@@ -198,4 +198,60 @@ const job = {
     }
 }
 
-module.exports = { balance, exp, gems, dailyTime, stealTime, level, inviteTime, workTime, workExp, job };
+const battleStats = {
+    addWin: async function(id) {
+        const user = userInfo.get(id);
+        if (user) {
+            user.battles_won += 1;
+            return user.save();
+        }
+        const newUser = await Users.create({user_id: id, battles_won: 1});
+        userInfo.set(id, newUser);
+        return newUser;
+    },
+
+    addLoss: async function(id) {
+        const user = userInfo.get(id);
+        if (user) {
+            user.battles_lost += 1;
+            return user.save();
+        }
+        const newUser = await Users.create({user_id: id, battles_lost: 1});
+        userInfo.set(id, newUser);
+        return newUser;
+    },
+
+    getWins: function(id) {
+        const user = userInfo.get(id);
+        return user ? user.battles_won : 0;
+    },
+
+    getLosses: function(id) {
+        const user = userInfo.get(id);
+        return user ? user.battles_lost : 0;
+    },
+
+    getWinRate: function(id) {
+        const wins = this.getWins(id);
+        const losses = this.getLosses(id);
+        const total = wins + losses;
+        return total > 0 ? ((wins / total) * 100).toFixed(1) : 0;
+    }
+}
+
+const battleTime = {
+    setBattleTime: async function(id) {
+        const user = userInfo.get(id);
+        if (user) {
+            user.time_since_battle = Date.now();
+            return user.save();
+        }
+    },
+
+    getBattleTimes: function(id) {
+        const user = userInfo.get(id);
+        return user ? user.time_since_battle : 0;
+    }
+}
+
+module.exports = { balance, exp, gems, dailyTime, stealTime, level, inviteTime, workTime, workExp, job, battleStats, battleTime };

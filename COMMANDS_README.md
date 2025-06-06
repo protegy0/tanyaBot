@@ -228,6 +228,32 @@ Battle other users' characters.
 - Winner gets 3 gems, characters gain 30 EXP
 - Speed determines tie-breaker
 
+### `/battle`
+**NEW!** Comprehensive combat system with NPCs, bosses, and arena PvP.
+```
+/battle npc <enemy> <character>     # Fight NPCs for rewards
+/battle boss <boss> <character>     # Challenge powerful bosses
+/battle arena @user <character>     # Quick PvP battles
+/battle stats                       # View battle statistics
+```
+
+**NPC Enemies** (Level | Rewards):
+- **🟢 Green Slime** (1) - 10-25 moolah, 15-25 EXP
+- **👹 Cave Goblin** (3) - 25-50 moolah, 25-40 EXP, 1 gem
+- **🧌 Fierce Orc** (5) - 50-100 moolah, 40-60 EXP, 2 gems
+- **🧟 Mountain Troll** (8) - 100-200 moolah, 60-100 EXP, 3 gems
+- **🐉 Ancient Dragon** (15) - 300-500 moolah, 150-250 EXP, 10 gems
+
+**Boss Battles** (Level req. | Cooldown):
+- **👑🟢 King Slime** (10 | 6hrs) - 200-400 moolah, 100-150 EXP, 5 gems
+- **😈 Demon Lord** (20 | 12hrs) - 500-1000 moolah, 200-300 EXP, 15 gems
+
+**Combat Mechanics**:
+- Initiative-based turn order (Speed + randomness)
+- Damage = Random(1-ATK) - Defense mitigation
+- Character EXP: +50 win, +10-15 loss
+- Battle stats tracking (wins/losses/win rate)
+
 ---
 
 ## 📊 Information Commands
@@ -295,6 +321,25 @@ Display server information.
 Display user information.
 ```
 /user [@user]              # Show user info & join date
+```
+
+### `/quit`
+**NEW!** Stop any active command in the current channel.
+```
+/quit [reason]             # Stop active command (reason optional)
+```
+
+**Permissions**:
+- **Command Owner**: Can always quit their own commands
+- **Server Admins**: Can quit any command (Administrator or Manage Channels)
+- **Others**: Cannot quit commands they didn't start
+
+**Supported Commands**: All interactive commands (battles, arena challenges, etc.)
+
+### `/active`
+**NEW!** Show active commands in the channel (Admin only).
+```
+/active                    # Display current active command info
 ```
 
 ---
