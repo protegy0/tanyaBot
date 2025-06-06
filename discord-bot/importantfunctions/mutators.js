@@ -147,4 +147,55 @@ const inviteTime = {
 
 
 
-module.exports = { balance, exp, gems, dailyTime, stealTime, level, inviteTime };
+const workTime = {
+    setWorkTime: async function(id) {
+        const user = userInfo.get(id);
+        if (user) {
+            user.time_since_work = Date.now()
+            return user.save();
+        }
+    },
+
+    getWorkTimes: function(id) {
+        const user = userInfo.get(id);
+        return user ? user.time_since_work : 0;
+    }
+}
+
+const workExp = {
+    addWorkExp: async function(id, amount) {
+        const user = userInfo.get(id);
+        if (user) {
+            user.work_experience += Number(amount);
+            return user.save();
+        }
+        const newUser = await Users.create({user_id: id, work_experience: amount});
+        userInfo.set(id, newUser);
+        return newUser;
+    },
+
+    getWorkExp: function(id) {
+        const user = userInfo.get(id);
+        return user ? user.work_experience : 0;
+    }
+}
+
+const job = {
+    setJob: async function(id, jobName) {
+        const user = userInfo.get(id);
+        if (user) {
+            user.current_job = jobName;
+            return user.save();
+        }
+        const newUser = await Users.create({user_id: id, current_job: jobName});
+        userInfo.set(id, newUser);
+        return newUser;
+    },
+
+    getJob: function(id) {
+        const user = userInfo.get(id);
+        return user ? user.current_job : 'unemployed';
+    }
+}
+
+module.exports = { balance, exp, gems, dailyTime, stealTime, level, inviteTime, workTime, workExp, job };

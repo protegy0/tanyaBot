@@ -6,6 +6,7 @@ const { token } = require('./config.json');
 const { balance, level, exp, gems} = require('./importantfunctions/mutators.js')
 const userInfo = new Collection();
 const { EmbedBuilder } = require('discord.js');
+const BotCLI = require('../cli-admin.js');
 const client = new Client({ intents: [
                                                             GatewayIntentBits.Guilds,
                                                             GatewayIntentBits.GuildMessages,
@@ -35,11 +36,16 @@ for (const folder of commandFolders) {
 function addCache(id) {
     client.users.fetch(id)
 }
+const cli = new BotCLI();
+
 client.once(Events.ClientReady, async readyClient => {
     console.log(`Ready! Logged in as ${readyClient.user.tag}`);
     const storedUserInfo = await Users.findAll();
     storedUserInfo.forEach(b => userInfo.set(b.user_id, b));
     storedUserInfo.forEach(b => addCache(b.user_id));
+    
+    cli.setClient(client);
+    cli.start();
 });
 
 client.login(token);

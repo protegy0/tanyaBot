@@ -39,6 +39,21 @@ module.exports = (sequelize, DataTypes) => {
             defaultValue: 0,
             allowNull: false,
         },
+        time_since_work: {
+            type: DataTypes.INTEGER,
+            defaultValue: 0,
+            allowNull: false,
+        },
+        work_experience: {
+            type: DataTypes.INTEGER,
+            defaultValue: 0,
+            allowNull: false,
+        },
+        current_job: {
+            type: DataTypes.STRING,
+            defaultValue: 'unemployed',
+            allowNull: false,
+        },
 
     }, {
         timestamps: false,

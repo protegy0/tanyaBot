@@ -6,6 +6,9 @@ const sequelize = new Sequelize('database', 'username', 'password', {
     dialect: 'sqlite',
     logging: false,
     storage: 'database.sqlite',
+    dialectOptions: {
+        options: 'PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;'
+    }
 });
 
 const Users = require('./models/Users.js')(sequelize, Sequelize.DataTypes);
